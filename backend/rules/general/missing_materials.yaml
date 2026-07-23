@@ -1,0 +1,12 @@
+version: 1
+rules:
+  - id: general.contract.missing_acceptance_record
+    enabled: true
+    description: 存在履行或交付事实，但尚未发现完整的验收记录
+    applies_to: contract
+    required_categories:
+      - 验收材料
+    severity: medium
+    output_type: missing_material
+    requires_human_review: true
+

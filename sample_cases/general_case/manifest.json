@@ -1,0 +1,8 @@
+{
+  "case_name": "青禾餐饮品牌设计服务合同纠纷（虚构）",
+  "case_type": "contract",
+  "synthetic": true,
+  "documents": ["品牌设计服务合同", "首期付款凭证", "项目沟通记录"],
+  "demo_focus": ["事实提取", "时间线", "证据来源", "缺失验收材料"]
+}
+

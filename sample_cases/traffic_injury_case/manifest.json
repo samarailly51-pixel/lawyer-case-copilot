@@ -1,0 +1,10 @@
+{
+  "case_name": "林某交通事故人伤案件（虚构）",
+  "case_type": "traffic_injury",
+  "synthetic": true,
+  "documents": ["事故认定书", "住院病历", "医疗费用票据", "费用清单", "收入证明", "保险信息页"],
+  "missing_material": "护理人员及护理期限依据",
+  "information_conflict": "住院记录出院日期与医疗票据开票日期不同",
+  "human_judgment": "后续腰痛记载与事故之间的关系须由律师结合专业意见核查"
+}
+

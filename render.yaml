@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: lawyer-case-copilot
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile.render
+    autoDeployTrigger: checksPass
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PUBLIC_DEMO_MODE
+        value: "true"
+      - key: PUBLIC_DEMO_READ_ONLY
+        value: "true"
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: FRONTEND_DIST_DIR
+        value: /app/frontend_dist
+      - key: DATABASE_URL
+        value: sqlite:////tmp/lawyer_case_copilot.db
+      - key: UPLOAD_DIR
+        value: /tmp/lawyer-case-uploads
+      - key: AUTH_MODE
+        value: disabled
+      - key: MODEL_PROVIDER
+        value: mock
+      - key: WORKFLOW_EXECUTION_MODE
+        value: inline
+      - key: ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES
+        value: "false"
+      - key: OCR_PROVIDER
+        value: disabled
+      - key: MAX_UPLOAD_MB
+        value: "5"

@@ -1,0 +1,46 @@
+version: 1
+rules:
+  - id: traffic.missing_accident_determination
+    enabled: true
+    description: 尚未发现道路交通事故认定书
+    required_categories: [道路交通事故认定书]
+    severity: high
+    output_type: missing_material
+    requires_human_review: true
+
+  - id: traffic.missing_medical_statement
+    enabled: true
+    description: 存在医疗费用票据，但尚未发现对应费用清单
+    trigger_categories: [医疗费用票据]
+    required_categories: [医疗费用清单]
+    severity: medium
+    output_type: missing_material
+    requires_human_review: true
+
+  - id: traffic.missing_income_evidence
+    enabled: true
+    description: 存在误工费项目，但尚未发现收入或误工材料
+    claim: 误工费
+    required_categories: [收入及误工证明]
+    severity: medium
+    output_type: missing_material
+    requires_human_review: true
+
+  - id: traffic.missing_nursing_basis
+    enabled: true
+    description: 存在护理费项目，但尚未发现护理人员或护理期限依据
+    claim: 护理费
+    required_categories: [护理证明]
+    severity: medium
+    output_type: missing_material
+    requires_human_review: true
+
+  - id: traffic.appraisal_material_missing
+    enabled: true
+    description: 存在伤残相关主张，但尚未发现鉴定材料
+    claim: 残疾赔偿金
+    required_categories: [伤残鉴定材料]
+    severity: high
+    output_type: missing_material
+    requires_human_review: true
+

@@ -1,0 +1,15 @@
+version: 1
+description: >-
+  个人真实办案经验规则预留文件。当前不包含任何实际业务判断规则，
+  请在脱敏、核验并确认适用范围后补充。
+rule_schema_example:
+  id: personal.example.disabled
+  enabled: false
+  description: 仅展示字段结构，不代表任何法律或办案规则
+  conditions: []
+  severity: medium
+  output_type: risk
+  requires_human_review: true
+  source_note: 待律师补充
+rules: []
+

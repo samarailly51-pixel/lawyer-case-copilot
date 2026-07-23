@@ -1,0 +1,17 @@
+.git
+.github
+.env
+**/.env
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.test-tmp*
+frontend/node_modules
+frontend/dist
+backend/storage
+backend/*.db
+backend/*.log
+*.db
+docs
+sample_cases
+evals
