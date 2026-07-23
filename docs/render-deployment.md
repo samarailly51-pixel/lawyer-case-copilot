@@ -1,4 +1,4 @@
-# Render 常驻公开 Demo 部署
+# Render 免费公开 Demo 部署
 
 本方案用于简历展示：单个 Render Web Service 同时提供 React 页面和 FastAPI API，使用完全虚构的初始化案例、Mock Provider 和服务端强制只读模式。
 
@@ -7,14 +7,14 @@
 ```text
 GitHub main
    ↓ checksPass
-Render Starter Web Service
+Render Free Web Service
    ├── /            React SPA
    ├── /api/*       FastAPI
    ├── /health      健康检查
    └── /docs        API 文档
 ```
 
-`render.yaml` 明确选择 `starter` 实例，避免免费实例闲置休眠。`Dockerfile.render` 在构建阶段编译前端，并在运行镜像中由 FastAPI 同域提供页面和 API。
+`render.yaml` 明确选择 `free` 实例。免费实例空闲 15 分钟后会休眠，首次访问可能需要约一分钟唤醒；`Dockerfile.render` 在构建阶段编译前端，并在运行镜像中由 FastAPI 同域提供页面和 API。
 
 ## 公开 Demo 安全边界
 
@@ -30,7 +30,7 @@ Render Starter Web Service
 1. 将仓库推送到 GitHub。
 2. 登录 Render，选择 **New → Blueprint**。
 3. 连接该 GitHub 仓库，Render 会读取根目录的 `render.yaml`。
-4. 确认实例类型为 **Starter**，创建服务。
+4. 确认实例类型为 **Free**，创建服务；不要添加付费实例或持久磁盘。
 5. 部署完成后检查：
    - `/health` 返回 `{"status":"ok"}`；
    - `/api/cases` 返回两个虚构案例；

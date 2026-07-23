@@ -2,7 +2,7 @@ services:
   - type: web
     name: lawyer-case-copilot
     runtime: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./Dockerfile.render
     autoDeployTrigger: checksPass
     healthCheckPath: /health

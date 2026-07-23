@@ -94,10 +94,10 @@ npm run dev
 
 ## 简历公开 Demo
 
-仓库包含 Render 付费常驻服务配置：
+仓库包含 Render 免费公开 Demo 配置：
 
 - `Dockerfile.render`：将 React 与 FastAPI 合并为一个同域服务；
-- `render.yaml`：使用 Starter 常驻实例和 `/health` 健康检查；
+- `render.yaml`：使用 Free 实例和 `/health` 健康检查；空闲 15 分钟后会休眠；
 - `PUBLIC_DEMO_READ_ONLY=true`：服务端强制只读；
 - `MODEL_PROVIDER=mock`：不调用外部模型；
 - 完全虚构 Demo 数据，重新部署自动恢复。
@@ -238,4 +238,4 @@ npm run build
 - [Demo 指南](docs/demo-guide.md)
 - [企业部署](docs/enterprise-deployment.md)
 - [安全运维](docs/security-operations.md)
-- [Render 常驻公开 Demo](docs/render-deployment.md)
+- [Render 免费公开 Demo](docs/render-deployment.md)
