@@ -4,6 +4,12 @@ export type CaseItem = {
   risk_level: string; progress: number; is_demo: boolean; updated_at: string;
 }
 
+export type PortfolioMetrics = {
+  dataset_label: string; case_count: number; document_count: number; fact_count: number;
+  fact_source_coverage: number; compensation_item_count: number; workflow_node_count: number;
+  mandatory_risk_count: number; unsupported_model_outputs_rejected: number; disclaimer: string;
+}
+
 export type Source = { document_id: string; filename: string; page_number?: number; quote: string }
 export type Reviewable = { id: string; review_status: string; confidence?: number; version?: number; sources?: Source[] }
 export type DocumentItem = { id: string; filename: string; category: string; parse_status: string; parse_warning: string; page_count: number; created_at: string }

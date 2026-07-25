@@ -1,4 +1,4 @@
-import type { CaseItem, CurrentUser, DocumentPreview, KnowledgeSource, Member, QualityReport, Workspace } from './types'
+import type { CaseItem, CurrentUser, DocumentPreview, KnowledgeSource, Member, PortfolioMetrics, QualityReport, Workspace } from './types'
 import type { AuthStatus } from './demoMode'
 
 const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
@@ -26,6 +26,7 @@ export const api = {
   me: () => request<CurrentUser>('/auth/me'),
   workspaces: () => request<Array<{ id: string; name: string; slug: string; role: string }>>('/workspaces'),
   cases: () => request<CaseItem[]>('/cases'),
+  portfolioMetrics: () => request<PortfolioMetrics>('/portfolio-metrics'),
   createCase: (payload: Record<string, string>) => request<CaseItem>('/cases', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
   }),

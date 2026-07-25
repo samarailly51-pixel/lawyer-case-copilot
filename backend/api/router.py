@@ -151,6 +151,52 @@ def list_cases(actor: Actor = Depends(get_current_actor), db: Session = Depends(
     ))
 
 
+@router.get("/portfolio-metrics")
+def portfolio_metrics(actor: Actor = Depends(get_current_actor), db: Session = Depends(get_db)):
+    """Return evidence-backed portfolio metrics for the synthetic demo workspace."""
+    cases = list(db.scalars(
+        select(Case).join(CaseWorkspaceLink, CaseWorkspaceLink.case_id == Case.id)
+        .where(CaseWorkspaceLink.workspace_id == actor.workspace_id, Case.is_demo.is_(True))
+        .order_by(Case.created_at)
+    ))
+    reports = [evaluate_case(db, item.id) for item in cases]
+    case_ids = [item.id for item in cases]
+    if not case_ids:
+        return {
+            "dataset_label": "完全虚构回归集",
+            "case_count": 0,
+            "document_count": 0,
+            "fact_count": 0,
+            "fact_source_coverage": 0.0,
+            "compensation_item_count": 0,
+            "workflow_node_count": 0,
+            "mandatory_risk_count": 0,
+            "unsupported_model_outputs_rejected": 0,
+            "disclaimer": "仅衡量系统输出完整性和可追溯性，不评价法律结论。",
+        }
+    compensation_items = list(db.scalars(select(CompensationItem).where(
+        CompensationItem.case_id.in_(case_ids), CompensationItem.is_current.is_(True)
+    )))
+    mandatory_risks = list(db.scalars(select(TrafficRiskItem).where(
+        TrafficRiskItem.case_id.in_(case_ids),
+        TrafficRiskItem.is_current.is_(True),
+        TrafficRiskItem.mandatory_human_review.is_(True),
+    )))
+    node_names = set(db.scalars(select(NodeRun.node_name).where(NodeRun.case_id.in_(case_ids))))
+    return {
+        "dataset_label": "完全虚构回归集",
+        "case_count": len(cases),
+        "document_count": sum(report.counts["documents"] for report in reports),
+        "fact_count": sum(report.counts["facts"] for report in reports),
+        "fact_source_coverage": round(sum(report.fact_source_coverage for report in reports) / len(reports), 4),
+        "compensation_item_count": len(compensation_items),
+        "workflow_node_count": len(node_names),
+        "mandatory_risk_count": len(mandatory_risks),
+        "unsupported_model_outputs_rejected": sum(report.unsupported_model_outputs_rejected for report in reports),
+        "disclaimer": "仅衡量完全虚构样例的系统输出完整性和可追溯性，不评价法律结论或案件结果。",
+    }
+
+
 @router.post("/cases", response_model=CaseOut, status_code=201)
 def create_case(payload: CaseCreate, actor: Actor = Depends(get_current_actor), db: Session = Depends(get_db)):
     require_role(actor, "lawyer")

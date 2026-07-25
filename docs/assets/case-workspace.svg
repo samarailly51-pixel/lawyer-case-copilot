@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="810" viewBox="0 0 1440 810" role="img" aria-labelledby="title desc">
+  <title id="title">Lawyer Case Copilot 案件工作台</title>
+  <desc id="desc">完全虚构案件工作台、可追溯指标、三分钟产品导览和两个案例卡片。</desc>
+  <defs>
+    <linearGradient id="tour" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#132237"/>
+      <stop offset="1" stop-color="#274f72"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#172033" flood-opacity=".12"/>
+    </filter>
+    <style>
+      .sans{font-family:"Noto Sans SC","Microsoft YaHei",Arial,sans-serif}
+      .serif{font-family:"Noto Serif SC","Songti SC","SimSun",serif}
+      .muted{fill:#6b7482}
+      .tiny{font-size:14px}
+      .small{font-size:17px}
+      .label{font-size:14px;font-weight:700;letter-spacing:2px}
+    </style>
+  </defs>
+  <rect width="1440" height="810" fill="#f4f5f7"/>
+  <rect width="1440" height="88" fill="#fff"/>
+  <line y1="88" x2="1440" y2="88" stroke="#e2e6eb"/>
+  <rect x="72" y="22" width="46" height="46" rx="8" fill="#132237"/>
+  <text x="95" y="55" text-anchor="middle" fill="#dfc19b" font-family="Georgia" font-size="28" font-weight="700">L</text>
+  <text x="136" y="43" class="sans" fill="#172033" font-size="21" font-weight="700">Lawyer Case Copilot</text>
+  <text x="136" y="65" class="sans muted" font-size="13">律师案件智能助理</text>
+  <rect x="1207" y="25" width="153" height="38" rx="7" fill="#f7f8fa" stroke="#e2e6eb"/>
+  <text x="1284" y="50" text-anchor="middle" class="sans muted" font-size="14">完全虚构 Demo</text>
+
+  <text x="72" y="153" class="sans label" fill="#b68a52">CASE WORKSPACE</text>
+  <text x="72" y="205" class="serif" fill="#172337" font-size="44" font-weight="700">案件工作台</text>
+  <text x="72" y="244" class="sans muted" font-size="18">围绕具体案件整理材料、事实、证据与风险，所有 AI 结果均等待律师复核。</text>
+
+  <g transform="translate(72 282)">
+    <rect width="1296" height="108" rx="12" fill="#fff" stroke="#e2e6eb"/>
+    <line x1="324" x2="324" y2="108" stroke="#e2e6eb"/>
+    <line x1="648" x2="648" y2="108" stroke="#e2e6eb"/>
+    <line x1="972" x2="972" y2="108" stroke="#e2e6eb"/>
+    <g class="sans">
+      <text x="32" y="65" fill="#132237" font-family="Georgia" font-size="38" font-weight="700">2</text>
+      <text x="91" y="48" class="small muted">虚构案例</text><text x="91" y="72" class="tiny muted">通用 + 专业模块</text>
+      <text x="356" y="65" fill="#132237" font-family="Georgia" font-size="38" font-weight="700">100%</text>
+      <text x="474" y="48" class="small muted">材料引用覆盖</text><text x="474" y="72" class="tiny muted">事实均可回到原文</text>
+      <text x="680" y="65" fill="#132237" font-family="Georgia" font-size="38" font-weight="700">13</text>
+      <text x="749" y="48" class="small muted">赔偿项目矩阵</text><text x="749" y="72" class="tiny muted">仅整理证据与参数</text>
+      <text x="1004" y="65" fill="#132237" font-family="Georgia" font-size="38" font-weight="700">14</text>
+      <text x="1073" y="48" class="small muted">工作流节点</text><text x="1073" y="72" class="tiny muted">可观察、可重跑</text>
+    </g>
+  </g>
+
+  <g transform="translate(72 420)" filter="url(#shadow)">
+    <rect width="1296" height="222" rx="14" fill="url(#tour)"/>
+    <text x="36" y="47" class="sans label" fill="#d4ad73">3-MINUTE PRODUCT TOUR</text>
+    <text x="36" y="91" class="serif" fill="#fff" font-size="29" font-weight="700">从材料到律师复核，一条可追溯办案链路</text>
+    <text x="36" y="127" class="sans" fill="#b9c7d6" font-size="16">材料解析 → 事实与时间线 → 专业规则检查 → 风险提示 → 律师复核 → 辅助报告</text>
+    <text x="36" y="183" class="sans" fill="#f4d4a7" font-size="16" font-weight="700">进入交通事故专业演示  →</text>
+    <g class="sans" transform="translate(756 34)">
+      <g><rect width="228" height="62" rx="8" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".1"/><text x="16" y="36" fill="#d7b47e" font-weight="700">01</text><text x="53" y="36" fill="#dfe7ef" font-size="13">票据时间冲突</text></g>
+      <g transform="translate(244 0)"><rect width="228" height="62" rx="8" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".1"/><text x="16" y="36" fill="#d7b47e" font-weight="700">02</text><text x="53" y="36" fill="#dfe7ef" font-size="13">护理证明缺失</text></g>
+      <g transform="translate(0 78)"><rect width="228" height="62" rx="8" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".1"/><text x="16" y="36" fill="#d7b47e" font-weight="700">03</text><text x="53" y="36" fill="#dfe7ef" font-size="13">定位材料原文</text></g>
+      <g transform="translate(244 78)"><rect width="228" height="62" rx="8" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".1"/><text x="16" y="36" fill="#d7b47e" font-weight="700">04</text><text x="53" y="36" fill="#dfe7ef" font-size="13">律师人工复核</text></g>
+    </g>
+  </g>
+
+  <g transform="translate(72 672)" class="sans">
+    <rect width="632" height="102" rx="12" fill="#fff" stroke="#e2e6eb"/>
+    <rect x="24" y="20" width="116" height="27" rx="5" fill="#e8eafa"/>
+    <text x="82" y="39" text-anchor="middle" fill="#394d8c" font-size="13" font-weight="700">交通事故人伤</text>
+    <text x="24" y="74" fill="#263448" font-size="18" font-weight="700">林某交通事故人伤案件（虚构）</text>
+    <text x="586" y="72" text-anchor="end" fill="#214d77" font-size="14">进入案件 →</text>
+    <rect x="664" width="632" height="102" rx="12" fill="#fff" stroke="#e2e6eb"/>
+    <rect x="688" y="20" width="82" height="27" rx="5" fill="#eef1f4"/>
+    <text x="729" y="39" text-anchor="middle" fill="#596475" font-size="13" font-weight="700">合同纠纷</text>
+    <text x="688" y="74" fill="#263448" font-size="18" font-weight="700">品牌设计服务合同纠纷（虚构）</text>
+    <text x="1250" y="72" text-anchor="end" fill="#214d77" font-size="14">进入案件 →</text>
+  </g>
+</svg>

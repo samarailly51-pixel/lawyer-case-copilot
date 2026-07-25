@@ -1,0 +1,191 @@
+{
+  "passed": true,
+  "summary": {
+    "dataset_label": "完全虚构结构化回归集",
+    "total_scenarios": 6,
+    "passed_scenarios": 6,
+    "pass_rate": 1.0,
+    "average_fact_source_coverage": 1.0,
+    "scope_note": "只验证系统输出完整性、可追溯性和人工复核边界，不评价法律结论。"
+  },
+  "results": [
+    {
+      "id": "contract-demo-traceability",
+      "case_id": "ab240867-17ad-437e-a210-72476bda4270",
+      "passed": true,
+      "failures": [],
+      "quality": {
+        "case_id": "ab240867-17ad-437e-a210-72476bda4270",
+        "overall_score": 0.85,
+        "document_parse_rate": 1.0,
+        "document_quality_score": 1.0,
+        "fact_source_coverage": 1.0,
+        "fact_review_completion": 0.0,
+        "mandatory_risk_review_completion": 1.0,
+        "citation_freshness_rate": null,
+        "unsupported_model_outputs_rejected": 0,
+        "counts": {
+          "documents": 3,
+          "facts": 4,
+          "supported_facts": 4,
+          "mandatory_risks": 0,
+          "citations": 0,
+          "quality_flags": 0
+        },
+        "warnings": [
+          "仍有 AI 提取事实等待律师复核。",
+          "当前没有法律知识引用；系统不会据此生成法律结论。"
+        ]
+      }
+    },
+    {
+      "id": "contract-demo-review-boundary",
+      "case_id": "ab240867-17ad-437e-a210-72476bda4270",
+      "passed": true,
+      "failures": [],
+      "quality": {
+        "case_id": "ab240867-17ad-437e-a210-72476bda4270",
+        "overall_score": 0.85,
+        "document_parse_rate": 1.0,
+        "document_quality_score": 1.0,
+        "fact_source_coverage": 1.0,
+        "fact_review_completion": 0.0,
+        "mandatory_risk_review_completion": 1.0,
+        "citation_freshness_rate": null,
+        "unsupported_model_outputs_rejected": 0,
+        "counts": {
+          "documents": 3,
+          "facts": 4,
+          "supported_facts": 4,
+          "mandatory_risks": 0,
+          "citations": 0,
+          "quality_flags": 0
+        },
+        "warnings": [
+          "仍有 AI 提取事实等待律师复核。",
+          "当前没有法律知识引用；系统不会据此生成法律结论。"
+        ]
+      }
+    },
+    {
+      "id": "traffic-demo-specialist",
+      "case_id": "e0bd225e-6cbb-4c0a-b084-bfae4d845be2",
+      "passed": true,
+      "failures": [],
+      "quality": {
+        "case_id": "e0bd225e-6cbb-4c0a-b084-bfae4d845be2",
+        "overall_score": 0.65,
+        "document_parse_rate": 1.0,
+        "document_quality_score": 1.0,
+        "fact_source_coverage": 1.0,
+        "fact_review_completion": 0.0,
+        "mandatory_risk_review_completion": 0.0,
+        "citation_freshness_rate": null,
+        "unsupported_model_outputs_rejected": 0,
+        "counts": {
+          "documents": 6,
+          "facts": 5,
+          "supported_facts": 5,
+          "mandatory_risks": 3,
+          "citations": 0,
+          "quality_flags": 0
+        },
+        "warnings": [
+          "仍有 AI 提取事实等待律师复核。",
+          "仍有强制风险项等待律师处理。",
+          "当前没有法律知识引用；系统不会据此生成法律结论。"
+        ]
+      }
+    },
+    {
+      "id": "traffic-demo-evidence-gap",
+      "case_id": "e0bd225e-6cbb-4c0a-b084-bfae4d845be2",
+      "passed": true,
+      "failures": [],
+      "quality": {
+        "case_id": "e0bd225e-6cbb-4c0a-b084-bfae4d845be2",
+        "overall_score": 0.65,
+        "document_parse_rate": 1.0,
+        "document_quality_score": 1.0,
+        "fact_source_coverage": 1.0,
+        "fact_review_completion": 0.0,
+        "mandatory_risk_review_completion": 0.0,
+        "citation_freshness_rate": null,
+        "unsupported_model_outputs_rejected": 0,
+        "counts": {
+          "documents": 6,
+          "facts": 5,
+          "supported_facts": 5,
+          "mandatory_risks": 3,
+          "citations": 0,
+          "quality_flags": 0
+        },
+        "warnings": [
+          "仍有 AI 提取事实等待律师复核。",
+          "仍有强制风险项等待律师处理。",
+          "当前没有法律知识引用；系统不会据此生成法律结论。"
+        ]
+      }
+    },
+    {
+      "id": "traffic-demo-conflict",
+      "case_id": "e0bd225e-6cbb-4c0a-b084-bfae4d845be2",
+      "passed": true,
+      "failures": [],
+      "quality": {
+        "case_id": "e0bd225e-6cbb-4c0a-b084-bfae4d845be2",
+        "overall_score": 0.65,
+        "document_parse_rate": 1.0,
+        "document_quality_score": 1.0,
+        "fact_source_coverage": 1.0,
+        "fact_review_completion": 0.0,
+        "mandatory_risk_review_completion": 0.0,
+        "citation_freshness_rate": null,
+        "unsupported_model_outputs_rejected": 0,
+        "counts": {
+          "documents": 6,
+          "facts": 5,
+          "supported_facts": 5,
+          "mandatory_risks": 3,
+          "citations": 0,
+          "quality_flags": 0
+        },
+        "warnings": [
+          "仍有 AI 提取事实等待律师复核。",
+          "仍有强制风险项等待律师处理。",
+          "当前没有法律知识引用；系统不会据此生成法律结论。"
+        ]
+      }
+    },
+    {
+      "id": "traffic-demo-safety-boundary",
+      "case_id": "e0bd225e-6cbb-4c0a-b084-bfae4d845be2",
+      "passed": true,
+      "failures": [],
+      "quality": {
+        "case_id": "e0bd225e-6cbb-4c0a-b084-bfae4d845be2",
+        "overall_score": 0.65,
+        "document_parse_rate": 1.0,
+        "document_quality_score": 1.0,
+        "fact_source_coverage": 1.0,
+        "fact_review_completion": 0.0,
+        "mandatory_risk_review_completion": 0.0,
+        "citation_freshness_rate": null,
+        "unsupported_model_outputs_rejected": 0,
+        "counts": {
+          "documents": 6,
+          "facts": 5,
+          "supported_facts": 5,
+          "mandatory_risks": 3,
+          "citations": 0,
+          "quality_flags": 0
+        },
+        "warnings": [
+          "仍有 AI 提取事实等待律师复核。",
+          "仍有强制风险项等待律师处理。",
+          "当前没有法律知识引用；系统不会据此生成法律结论。"
+        ]
+      }
+    }
+  ]
+}

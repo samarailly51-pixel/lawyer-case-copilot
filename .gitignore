@@ -10,6 +10,7 @@ frontend/node_modules/
 frontend/dist/
 .pytest_cache/
 .test-tmp*/
+.demo-runtime/
 *.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts

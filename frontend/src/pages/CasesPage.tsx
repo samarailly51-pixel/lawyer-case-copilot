@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { Badge, Icon, typeLabel } from '../components'
-import type { CaseItem } from '../types'
+import type { CaseItem, PortfolioMetrics } from '../types'
 import { useDemoMode } from '../demoMode'
 
 export default function CasesPage() {
@@ -13,9 +13,15 @@ export default function CasesPage() {
   const [error, setError] = useState('')
   const [identity, setIdentity] = useState<{ name: string; workspace: string; role: string } | null>(null)
   const [workspaces, setWorkspaces] = useState<Array<{ id: string; name: string; role: string }>>([])
+  const [metrics, setMetrics] = useState<PortfolioMetrics | null>(null)
 
   const load = () => api.cases().then(setCases).catch(e => setError(e.message)).finally(() => setLoading(false))
-  useEffect(() => { void load(); api.me().then(me => setIdentity({ name: me.user.display_name, workspace: me.workspace.name, role: me.workspace.role })); api.workspaces().then(setWorkspaces) }, [])
+  useEffect(() => {
+    void load()
+    api.portfolioMetrics().then(setMetrics).catch(() => undefined)
+    api.me().then(me => setIdentity({ name: me.user.display_name, workspace: me.workspace.name, role: me.workspace.role }))
+    api.workspaces().then(setWorkspaces)
+  }, [])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -33,10 +39,28 @@ export default function CasesPage() {
         <div><p className="eyebrow">CASE WORKSPACE</p><h1>案件工作台</h1><p>围绕具体案件整理材料、事实、证据与风险，所有 AI 结果均等待律师复核。</p></div>
         <button className="primary" disabled={readOnly} onClick={() => setOpen(true)}><Icon name="plus" />{readOnly ? '公开只读演示' : '创建案件'}</button>
       </section>
-      <section className="summary-row">
-        <div><span>进行中案件</span><strong>{cases.filter(c => c.status === 'active').length}</strong><small>本地演示工作区</small></div>
-        <div><span>待复核</span><strong>{cases.length ? '2' : '0'}</strong><small>包含高风险提示</small></div>
-        <div><span>专业模块</span><strong>{cases.filter(c => c.case_type === 'traffic_injury').length}</strong><small>交通事故人伤</small></div>
+      <section className="summary-row portfolio-summary">
+        <div><span>虚构案例</span><strong>{metrics?.case_count ?? cases.length}</strong><small>通用 + 专业模块</small></div>
+        <div><span>材料引用覆盖</span><strong>{metrics ? `${Math.round(metrics.fact_source_coverage * 100)}%` : '—'}</strong><small>事实均可回到原文</small></div>
+        <div><span>赔偿项目矩阵</span><strong>{metrics?.compensation_item_count ?? '—'}</strong><small>仅整理证据与参数</small></div>
+        <div><span>工作流节点</span><strong>{metrics?.workflow_node_count ?? '—'}</strong><small>可观察、可重跑</small></div>
+      </section>
+      <section className="portfolio-proof">
+        <div>
+          <p className="eyebrow">3-MINUTE PRODUCT TOUR</p>
+          <h2>从材料到律师复核，一条可追溯办案链路</h2>
+          <p>材料解析 → 事实与时间线 → 专业规则检查 → 风险提示 → 律师复核 → 辅助报告</p>
+        </div>
+        <ol>
+          <li><strong>01</strong><span>发现住院日期与票据日期冲突</span></li>
+          <li><strong>02</strong><span>识别护理证明等材料缺口</span></li>
+          <li><strong>03</strong><span>定位风险项对应的材料原文</span></li>
+          <li><strong>04</strong><span>由案件负责律师接受、修改或驳回</span></li>
+        </ol>
+        {cases.find(item => item.case_type === 'traffic_injury') && <Link className="tour-link" to={`/cases/${cases.find(item => item.case_type === 'traffic_injury')!.id}/traffic`}>
+          进入交通事故专业演示 <Icon name="arrow" />
+        </Link>}
+        <small>{metrics?.disclaimer || '所有演示数据均为虚构，不评价法律结论或案件结果。'}</small>
       </section>
       {error && <div className="alert">{error}</div>}
       <section className="case-grid">

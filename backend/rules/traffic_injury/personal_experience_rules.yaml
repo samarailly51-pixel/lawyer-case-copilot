@@ -3,13 +3,41 @@ description: >-
   个人真实办案经验规则预留文件。当前不包含任何实际业务判断规则，
   请在脱敏、核验并确认适用范围后补充。
 rule_schema_example:
-  id: personal.example.disabled
+  id: personal.todo.example
   enabled: false
   description: 仅展示字段结构，不代表任何法律或办案规则
+  category: material_gap
+  applicable_case_stages: []
+  jurisdiction: 待填写
+  effective_from: null
+  reviewed_at: null
+  owner: 待填写
+  material_categories: []
   conditions: []
+  exclusions: []
   severity: medium
   output_type: risk
   requires_human_review: true
-  source_note: 待律师补充
+  lawyer_checklist: []
+  source:
+    source_type: personal_experience
+    title: 待律师补充
+    note: 必须脱敏并由项目所有者确认
+  version: 0.0.0-draft
+draft_slots:
+  - slot: material_classification
+    title: 实际案件材料分类经验
+    status: awaiting_owner_input
+  - slot: missing_material
+    title: 常见材料缺失及发现时点
+    status: awaiting_owner_input
+  - slot: evidence_conflict
+    title: 常见证据冲突及核查路径
+    status: awaiting_owner_input
+  - slot: mandatory_human_review
+    title: 强制人工复核的高风险情况
+    status: awaiting_owner_input
+  - slot: process_exception
+    title: 协商、鉴定和诉讼异常场景
+    status: awaiting_owner_input
 rules: []
-

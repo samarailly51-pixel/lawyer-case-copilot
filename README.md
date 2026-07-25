@@ -1,8 +1,33 @@
 # Lawyer Case Copilot｜律师案件智能助理
 
-面向案件负责律师的可追溯案件工作空间。项目以通用律师办案工作台为基础，并通过可插拔领域模块提供交通事故人伤案件的专业材料整理、证据检查和风险提示。
+[![CI](https://github.com/samarailly51-pixel/lawyer-case-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/samarailly51-pixel/lawyer-case-copilot/actions/workflows/ci.yml)
+![React](https://img.shields.io/badge/React-TypeScript-315f89)
+![FastAPI](https://img.shields.io/badge/FastAPI-Python-287153)
+![Demo Data](https://img.shields.io/badge/Data-100%25%20Synthetic-b68a52)
+
+面向案件负责律师的**可追溯案件工作空间**：以通用办案能力为底座，通过可插拔领域模块提供交通事故人伤案件的专业材料整理、证据检查和风险提示。
 
 > 系统只提供办案辅助，不构成正式法律意见，不替代案件负责律师作出责任、因果关系、证据效力、鉴定或法律适用判断。
+
+![案件工作台](docs/assets/case-workspace.svg)
+
+## 30 秒了解项目
+
+| 维度 | 设计 |
+|---|---|
+| 产品形态 | 围绕具体案件运行的工作空间，不是普通法律问答机器人 |
+| 通用能力 | 材料、事实、时间线、证据、任务、风险、来源引用和人工复核 |
+| 专业能力 | 交通事故责任、伤情治疗、医疗费用、赔偿项目和证据完整性 |
+| Agent 架构 | 一个 Workflow Orchestrator + 结构化节点 + 可插拔 Domain Plugin |
+| 可信机制 | 原始材料、AI 事实、模型建议、知识引用和律师结论严格分层 |
+| 演示数据 | 两个完全虚构案例；不包含真实客户、案件或未经核实的法律结论 |
+
+```text
+材料上传 → 事实与时间线 → Domain Router → 交通事故专业检查
+       → 证据与风险 → 律师人工复核 → 带引用的辅助报告
+```
+
+快速入口：[产品 Case Study](docs/case-study.md) · [三分钟 Demo](docs/demo-script.md) · [面试讲解](docs/interview-guide.md) · [评测结果](docs/evaluation-report.md)
 
 ## MVP 能力
 
@@ -68,6 +93,30 @@ MVP 采用模块化单体。节点是同一编排工作流中的结构化功能�
 ## 本地运行
 
 要求：Python 3.11+、Node.js 20+。
+
+### Windows 一键启动
+
+双击仓库根目录的 `start-demo.cmd`，或运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/start-demo.ps1
+```
+
+脚本会创建隔离的 Python 虚拟环境、安装缺失依赖、启动前后端并打开 `http://localhost:5173`。停止：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/stop-demo.ps1
+```
+
+macOS/Linux：
+
+```bash
+bash scripts/start-demo.sh
+# 停止
+bash scripts/stop-demo.sh
+```
+
+### 手动启动
 
 ### 1. 启动后端
 
@@ -186,23 +235,26 @@ STORAGE_ENCRYPTION_KEY=
 
 ## Demo 路径
 
-1. 打开合同纠纷案例，查看事实、时间线和证据矩阵；
-2. 打开交通事故案例，查看事故责任材料原文、治疗时间线和医疗费用关联；
-3. 查看住院日期与票据日期提示、缺失护理证明和因果关系人工判断项；
-4. 在“Agent 执行”中查看或重跑节点；
-5. 点击任一材料引用，验证页码定位和原文高亮；
-6. 在“律师复核”中批量处理、修改内容并查看版本历史；
-7. 在“办案任务”中更新任务状态，在“主体关系”查看关系图；
-8. 在“报告中心”查看引用目录并导出带来源的辅助报告。
+推荐按三分钟故事线演示：
 
-详见 [Demo 指南](docs/demo-guide.md)。
+1. 从首页进入交通事故人伤虚构案例；
+2. 查看事故责任、治疗时间线和医疗费用关联；
+3. 发现住院日期与票据日期冲突、护理证明缺失；
+4. 点击引用定位到材料页码和原文；
+5. 在“Agent 执行”查看节点状态、警告和单节点重跑；
+6. 在“律师复核”接受、修改或驳回 AI 输出；
+7. 在报告中心查看引用目录和辅助报告。
+
+逐句讲解见 [三分钟 Demo 脚本](docs/demo-script.md)。
 
 ## 测试
 
 ```bash
 cd backend
-pytest -q
-python -m evaluation.run_suite
+python -m pytest -q
+python -m evaluation.run_suite \
+  --json-output ../evals/latest-results.json \
+  --markdown-output ../docs/evaluation-report.md
 
 cd ../frontend
 npm run build
@@ -230,6 +282,10 @@ npm run build
 ## 文档
 
 - [产品定位](docs/product-positioning.md)
+- [产品 Case Study](docs/case-study.md)
+- [三分钟 Demo 脚本](docs/demo-script.md)
+- [面试讲解指南](docs/interview-guide.md)
+- [完全虚构评测结果](docs/evaluation-report.md)
 - [系统架构](docs/architecture.md)
 - [通用办案工作流](docs/general-workflow.md)
 - [交通事故人伤工作流](docs/traffic-injury-workflow.md)

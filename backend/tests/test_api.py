@@ -9,6 +9,12 @@ def test_health_and_seeded_cases():
         cases = client.get("/api/cases").json()
         assert len(cases) >= 2
         assert {item["case_type"] for item in cases} >= {"contract", "traffic_injury"}
+        metrics = client.get("/api/portfolio-metrics")
+        assert metrics.status_code == 200
+        assert metrics.json()["case_count"] >= 2
+        assert metrics.json()["fact_source_coverage"] == 1
+        assert metrics.json()["compensation_item_count"] == 13
+        assert metrics.json()["workflow_node_count"] >= 10
 
 
 def test_traffic_workspace_has_specialized_outputs():
