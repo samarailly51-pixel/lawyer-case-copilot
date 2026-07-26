@@ -16,15 +16,18 @@ from api.auth_router import auth_router
 from core.config import settings
 from core.database import SessionLocal, init_db
 from services.demo_data import backfill_document_quality, seed_demo_cases
+from services.readiness import enforce_production_readiness
 from core.auth import bootstrap_access
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    enforce_production_readiness()
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
     init_db()
     with SessionLocal() as db:
-        seed_demo_cases(db)
+        if settings.seed_demo_data:
+            seed_demo_cases(db)
         backfill_document_quality(db)
         bootstrap_access(db)
     yield

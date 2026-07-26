@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router'
 import { api } from '../api'
 import { Badge, Empty, Icon, reviewLabel, SourceLinks, statusTone, typeLabel } from '../components'
 import type { DocumentPreview, QualityReport, Reviewable, Source, Workspace } from '../types'

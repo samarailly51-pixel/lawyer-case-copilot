@@ -13,6 +13,8 @@ services:
         value: "true"
       - key: PUBLIC_DEMO_READ_ONLY
         value: "true"
+      - key: SEED_DEMO_DATA
+        value: "true"
       - key: SERVE_FRONTEND
         value: "true"
       - key: FRONTEND_DIST_DIR

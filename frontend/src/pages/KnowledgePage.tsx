@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { api } from '../api'
 import { Badge, Icon } from '../components'
 import type { KnowledgeSource } from '../types'

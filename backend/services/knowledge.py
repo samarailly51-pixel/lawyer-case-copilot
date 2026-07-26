@@ -10,6 +10,13 @@ from models.entities import KnowledgeSource, KnowledgeWorkspaceLink
 from schemas.knowledge import KnowledgeSourceCreate
 
 
+STATUS_SCORE = {
+    "verified_effective": 4.0,
+    "verification_required": 0.0,
+    "historical": -4.0,
+}
+
+
 def create_knowledge_source(db: Session, payload: KnowledgeSourceCreate) -> KnowledgeSource:
     canonical = "|".join((payload.title, payload.excerpt, payload.source_name, payload.source_url))
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -38,13 +45,35 @@ def search_knowledge(db: Session, query: str, scopes: list[str], limit: int = 5,
         ).where(KnowledgeWorkspaceLink.workspace_id == workspace_id)
     candidates = list(db.scalars(statement))
     terms = _terms(query)
-    scored: list[tuple[int, KnowledgeSource]] = []
+    scored: list[tuple[float, KnowledgeSource]] = []
     for item in candidates:
         title = item.title.lower()
-        haystack = f"{item.title} {item.excerpt} {item.source_name} {item.jurisdiction} {item.applicability_scope}".lower()
-        score = sum(3 if term in title else 1 for term in terms if term in haystack)
-        if score:
-            score += 2 if item.effective_status == "verified_effective" else 0
-            scored.append((score, item))
-    scored.sort(key=lambda value: (value[0], value[1].published_or_updated_at), reverse=True)
+        excerpt = item.excerpt.lower()
+        metadata = f"{item.source_name} {item.jurisdiction} {item.applicability_scope}".lower()
+        matched_terms = {
+            term for term in terms if term in title or term in excerpt or term in metadata
+        }
+        if not matched_terms:
+            continue
+        score = sum(
+            4.0 if term in title else 2.0 if term in excerpt else 1.0
+            for term in matched_terms
+        )
+        normalized_query = query.strip().lower()
+        if normalized_query and normalized_query in f"{title} {excerpt}":
+            score += 6.0
+        score += STATUS_SCORE.get(item.effective_status, -1.0)
+        if item.stale_risk:
+            score -= 2.0
+        if item.jurisdiction and item.jurisdiction.lower() in normalized_query:
+            score += 2.0
+        scored.append((score, item))
+    scored.sort(
+        key=lambda value: (
+            value[0],
+            value[1].published_or_updated_at,
+            value[1].id,
+        ),
+        reverse=True,
+    )
     return [item for _, item in scored[:limit]]

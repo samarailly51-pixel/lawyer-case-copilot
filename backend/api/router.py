@@ -12,10 +12,11 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db
 from core.auth import Actor, get_current_actor, require_case_access, require_role
+from core.malware import scan_upload
 from document_processing.quality import assess_text_quality
 from document_processing.service import chunk_text, classify_document, extract_pages, store_upload
 from models.entities import (
-    AgentRun, AuditLog, Case, CaseParty, CaseReport, CaseTask, CaseWorkspaceLink, CompensationItem, Document,
+    AgentRun, AuditLog, Case, CaseParty, CaseReport, CaseTask, CaseWorkspaceLink, CompensationItem, DisabilityAppraisal, Document,
     DocumentChunk, DocumentQualityAssessment, EvidenceItem, ExtractedFact, HumanReview, InjuryRecord, InsuranceInfo,
     KnowledgeSource, KnowledgeWorkspaceLink, LegalCitation, LegalIssue, MedicalExpense, MissingMaterial, NodeRun, RiskItem, SourceReference,
     TimelineEvent, TrafficAccidentInfo, TrafficRiskItem, TreatmentRecord, PartyRelationship,
@@ -26,13 +27,14 @@ from schemas.api import (
 )
 from schemas.knowledge import KnowledgeSearch, KnowledgeSourceCreate
 from services.knowledge import create_knowledge_source, search_knowledge
+from services.readiness import production_readiness
+from services.rules import validate_rule_file
 from evaluation.metrics import evaluate_case
 from workflows import WorkflowOrchestrator
 from services.workflow_tasks import execute_workflow_run
 from core.config import settings
 import io
 from urllib.parse import quote as url_quote, urlparse
-import yaml
 from difflib import SequenceMatcher
 import re
 
@@ -55,7 +57,8 @@ def row_dict(row: Any, db: Session | None = None, with_sources: bool = False) ->
             "ExtractedFact": "fact", "TimelineEvent": "timeline", "EvidenceItem": "evidence",
             "LegalIssue": "legal_issue", "TrafficAccidentInfo": "traffic_accident",
             "InjuryRecord": "injury", "TreatmentRecord": "treatment", "MedicalExpense": "medical_expense",
-            "InsuranceInfo": "insurance", "TrafficRiskItem": "traffic_risk",
+            "InsuranceInfo": "insurance", "DisabilityAppraisal": "disability_appraisal",
+            "TrafficRiskItem": "traffic_risk",
         }
         target_type = target_names.get(type(row).__name__)
         sources = []
@@ -248,6 +251,9 @@ async def upload_document(case_id: str, file: UploadFile = File(...), actor: Act
         raise HTTPException(404, "案件不存在")
     content = await file.read()
     try:
+        malware_scan = scan_upload(content)
+        if not malware_scan.clean:
+            raise ValueError(f"文件未通过恶意内容扫描：{malware_scan.signature or '检测到风险'}")
         target, digest = store_upload(case_id, file.filename or "upload.txt", content)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
@@ -269,9 +275,23 @@ async def upload_document(case_id: str, file: UploadFile = File(...), actor: Act
     quality = assess_text_quality(text, warning, average_ocr)
     db.add(DocumentQualityAssessment(
         document_id=doc.id, case_id=case_id, text_quality_score=quality.score,
-        injection_risk=quality.injection_risk, security_flags=quality.flags,
-        warnings=quality.warnings, requires_human_review=quality.requires_human_review,
+        injection_risk=quality.injection_risk, security_flags=list(dict.fromkeys([*quality.flags, *malware_scan.flags])),
+        warnings=list(dict.fromkeys([*quality.warnings, *malware_scan.warnings])),
+        requires_human_review=quality.requires_human_review or bool(malware_scan.flags),
         ocr_provider=extraction.ocr_provider,
+    ))
+    db.add(AuditLog(
+        case_id=case_id,
+        actor=actor.display_name,
+        action="upload_document",
+        target_type="document",
+        target_id=doc.id,
+        details={
+            "filename": doc.filename,
+            "sha256": digest,
+            "malware_scan_provider": malware_scan.provider,
+            "malware_scan_clean": malware_scan.clean,
+        },
     ))
     db.commit(); db.refresh(doc)
     return doc
@@ -389,6 +409,7 @@ def case_workspace(case_id: str, actor: Actor = Depends(get_current_actor), db: 
         "tasks": CaseTask, "compensation_items": CompensationItem, "traffic_risks": TrafficRiskItem,
         "injuries": InjuryRecord, "treatments": TreatmentRecord, "medical_expenses": MedicalExpense,
         "insurance": InsuranceInfo, "traffic_accident": TrafficAccidentInfo, "reports": CaseReport,
+        "disability_appraisals": DisabilityAppraisal,
         "legal_citations": LegalCitation, "document_quality": DocumentQualityAssessment,
         "relationships": PartyRelationship,
     }
@@ -572,13 +593,24 @@ def traffic_rule_catalog(actor: Actor = Depends(get_current_actor)):
     root = Path(__file__).resolve().parents[1] / "rules" / "traffic_injury"
     catalog = []
     for filename in ("evidence_completeness.yaml", "personal_experience_rules.yaml"):
-        payload = yaml.safe_load((root / filename).read_text(encoding="utf-8")) or {}
+        validation = validate_rule_file(root / filename)
+        payload = validation.payload
         catalog.append({
             "filename": filename, "version": payload.get("version", 1),
             "description": payload.get("description", "系统证据完整性规则"),
             "rule_count": len(payload.get("rules") or []), "rules": payload.get("rules") or [],
+            "enabled_rule_count": validation.enabled_rule_count,
+            "valid": validation.valid,
+            "validation_errors": validation.errors,
+            "validation_warnings": validation.warnings,
         })
     return catalog
+
+
+@router.get("/system/readiness")
+def system_readiness(actor: Actor = Depends(get_current_actor)):
+    require_role(actor, "admin")
+    return production_readiness()
 
 
 @router.post("/cases/{case_id}/compensation-scenario")

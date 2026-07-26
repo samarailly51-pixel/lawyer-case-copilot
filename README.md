@@ -72,7 +72,10 @@
 - 主体关系页、办案任务看板和任务状态更新；
 - 交通事故赔偿参数情景测算，仅做输入参数的算术汇总；
 - 律所成员与四级角色管理页面；
-- 完全虚构的合同/交通事故结构化回归评测集。
+- 完全虚构的合同/交通事故结构化回归评测集，覆盖 Demo 与真实上传路径；
+- 非 Demo 交通案件采用结构化 Schema、逐字来源校验和保守本地降级，不再复用展示案例固定事实；
+- 上传恶意文件扫描、规则 Schema 校验、数据保留清理和生产准入门禁；
+- 管理员设置页可查看生产配置阻断项。
 
 ## 技术架构
 
@@ -148,6 +151,7 @@ npm run dev
 - `Dockerfile.render`：将 React 与 FastAPI 合并为一个同域服务；
 - `render.yaml`：使用 Free 实例和 `/health` 健康检查；空闲 15 分钟后会休眠；
 - `PUBLIC_DEMO_READ_ONLY=true`：服务端强制只读；
+- `SEED_DEMO_DATA=true`：仅在公开只读环境加载虚构案例；真实案件生产环境必须关闭；
 - `MODEL_PROVIDER=mock`：不调用外部模型；
 - 完全虚构 Demo 数据，重新部署自动恢复。
 
@@ -184,13 +188,13 @@ python -m core.bootstrap_admin --email admin@your-lawfirm.com --password "your-s
 docker compose up --build
 ```
 
-生产化参考编排：
+生产化参考编排（当前会被准入门禁阻止启动，直到必需配置和经律师核验的个人规则齐备）：
 
 ```bash
 docker compose -f docker-compose.production.yml up --build
 ```
 
-该编排启用 PostgreSQL、MinIO、JWT 认证、S3 存储和后台工作流模式。部署前必须配置密码与密钥。
+该编排启用 PostgreSQL、MinIO、ClamAV、JWT 认证、S3 存储和后台工作流模式。部署前必须配置密码、密钥、数据保留周期，并由律师补充至少一条通过校验的个人经验规则。详见 [内测与上线准入](docs/pilot-readiness.md)。
 
 数据库迁移：
 
@@ -233,6 +237,25 @@ STORAGE_ENCRYPTION_KEY=
 
 生产环境可设置 `STORAGE_BACKEND=s3`，并配置 `S3_ENDPOINT_URL`、`S3_BUCKET` 和访问凭证。支持 AWS S3、MinIO 及其他兼容实现。
 
+生产安全与保留策略示例：
+
+```dotenv
+MALWARE_SCAN_PROVIDER=clamav
+MALWARE_SCAN_REQUIRED=true
+DATA_RETENTION_DAYS=365
+ENFORCE_PRODUCTION_READINESS=true
+REQUIRE_PERSONAL_EXPERIENCE_RULES=true
+```
+
+管理员可调用 `GET /api/system/readiness` 或在“律所工作空间”页面查看准入项。数据删除默认只预览：
+
+```bash
+cd backend
+python -m services.data_retention
+# 确认候选案件及对象存储备份后才执行
+python -m services.data_retention --execute --confirm DELETE-EXPIRED-CASES
+```
+
 ## Demo 路径
 
 推荐按三分钟故事线演示：
@@ -265,11 +288,11 @@ npm run build
 - 默认配置仍是免登录本地 Demo；认证、多租户和 S3 需通过环境变量启用；
 - 图片默认不启用 OCR，可选择本地 Tesseract，不向外部 OCR 服务发送；
 - 不内置未经核实的法律法规或赔偿计算参数；
-- 已有完全虚构的回归评测集，但尚无律师标注的真实脱敏领域准确率评测集；
+- 已有 9 个完全虚构的 Demo/非 Demo 回归场景，但尚无律师标注的真实脱敏领域准确率评测集；
 - 不生成正式法律意见、诉状或可直接提交法院的最终文书；
 - Demo 数据、机构、姓名、编号和事实均为虚构。
 
-生产上线前仍需完成组织自身的等保/隐私合规评估、供应商数据处理协议、灾备演练、恶意文件扫描和经律师标注的领域评测。这些不能由代码仓库自行替代。
+代码已提供 ClamAV 接入、生产准入门禁和数据保留工具，但生产上线前仍需由组织完成等保/隐私合规评估、供应商数据处理协议、备份恢复演练、密钥托管、经律师标注的领域评测和规则确认。这些不能由代码仓库自行替代。
 
 ## 个人经验预留
 
@@ -294,4 +317,5 @@ npm run build
 - [Demo 指南](docs/demo-guide.md)
 - [企业部署](docs/enterprise-deployment.md)
 - [安全运维](docs/security-operations.md)
+- [内测与上线准入](docs/pilot-readiness.md)
 - [Render 免费公开 Demo](docs/render-deployment.md)

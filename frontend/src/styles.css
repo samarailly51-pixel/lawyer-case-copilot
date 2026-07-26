@@ -275,6 +275,12 @@ td > small { display: block; margin-top: 5px; }
 .scenario-result small { display: block; color: #8a6842; margin-top: 8px; line-height: 1.5; }
 .security-grid article { border: 1px solid var(--line); padding: 15px; border-radius: 6px; }
 .security-grid p { color: var(--muted); font-size: 11px; margin: 6px 0 0; }
+.readiness-list { display: grid; gap: 9px; }
+.readiness-list article { display: grid; grid-template-columns: 58px 1fr; gap: 12px; align-items: start; border-top: 1px solid var(--line); padding: 12px 0; }
+.readiness-list article:first-child { border-top: 0; }
+.readiness-list strong { font: 600 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.readiness-list p, .readiness-disclaimer { color: var(--muted); font-size: 10px; line-height: 1.6; margin: 4px 0 0; }
+.readiness-disclaimer { border-top: 1px solid var(--line); padding-top: 12px; }
 .quality-hero { background: var(--navy); color: white; border-radius: 9px; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .quality-hero > div { display: flex; align-items: baseline; gap: 5px; }
 .quality-hero span { color: #9dabb9; font-size: 11px; margin-right: 13px; }

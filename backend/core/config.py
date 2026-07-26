@@ -16,6 +16,10 @@ class Settings:
     app_env: str = os.getenv("APP_ENV", "development")
     public_demo_mode: bool = os.getenv("PUBLIC_DEMO_MODE", "false").lower() == "true"
     public_demo_read_only: bool = os.getenv("PUBLIC_DEMO_READ_ONLY", "false").lower() == "true"
+    seed_demo_data: bool = os.getenv(
+        "SEED_DEMO_DATA",
+        "false" if os.getenv("APP_ENV", "development") == "production" else "true",
+    ).lower() == "true"
     serve_frontend: bool = os.getenv("SERVE_FRONTEND", "false").lower() == "true"
     frontend_dist_dir: Path = Path(os.getenv("FRONTEND_DIST_DIR", "../frontend/dist"))
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./lawyer_case_copilot.db")
@@ -46,6 +50,13 @@ class Settings:
     workflow_execution_mode: str = os.getenv("WORKFLOW_EXECUTION_MODE", "inline")
     redact_before_external_model: bool = os.getenv("REDACT_BEFORE_EXTERNAL_MODEL", "true").lower() == "true"
     max_upload_mb: int = int(os.getenv("MAX_UPLOAD_MB", "20"))
+    malware_scan_provider: str = os.getenv("MALWARE_SCAN_PROVIDER", "disabled")
+    malware_scan_required: bool = os.getenv("MALWARE_SCAN_REQUIRED", "false").lower() == "true"
+    clamav_host: str = os.getenv("CLAMAV_HOST", "localhost")
+    clamav_port: int = int(os.getenv("CLAMAV_PORT", "3310"))
+    enforce_production_readiness: bool = os.getenv("ENFORCE_PRODUCTION_READINESS", "false").lower() == "true"
+    require_personal_experience_rules: bool = os.getenv("REQUIRE_PERSONAL_EXPERIENCE_RULES", "false").lower() == "true"
+    data_retention_days: int = int(os.getenv("DATA_RETENTION_DAYS", "0"))
 
 
 settings = Settings()

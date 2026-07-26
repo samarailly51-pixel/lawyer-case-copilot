@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router'
 import { api } from './api'
 import CasesPage from './pages/CasesPage'
 import WorkspacePage from './pages/WorkspacePage'
