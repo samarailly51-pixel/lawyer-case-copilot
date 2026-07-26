@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from pathlib import Path
 
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
@@ -14,6 +15,7 @@ from models.entities import (
 )
 from nodes import NODE_HANDLERS
 from providers import get_provider
+from services.rules import validate_rule_file
 from .types import WORKFLOW_NODES
 
 
@@ -42,6 +44,9 @@ class WorkflowOrchestrator:
         if not case:
             raise ValueError("案件不存在")
         provider = get_provider()
+        rules_root = Path(__file__).resolve().parents[1] / "rules" / "traffic_injury"
+        evidence_rules = validate_rule_file(rules_root / "evidence_completeness.yaml")
+        personal_rules = validate_rule_file(rules_root / "personal_experience_rules.yaml")
         run = AgentRun(
             case_id=case_id,
             status="pending",
@@ -52,7 +57,15 @@ class WorkflowOrchestrator:
                 "case_type": case.case_type,
                 "provider": provider.name,
                 "temperature": settings.model_temperature,
-                "rules_version": "mvp-v1",
+                "rules_version": {
+                    "general": "mvp-v1",
+                    "traffic_evidence": evidence_rules.version,
+                    "personal_experience": personal_rules.version,
+                },
+                "enabled_rule_count": {
+                    "traffic_evidence": evidence_rules.enabled_rule_count,
+                    "personal_experience": personal_rules.enabled_rule_count,
+                },
             },
         )
         self.db.add(run)

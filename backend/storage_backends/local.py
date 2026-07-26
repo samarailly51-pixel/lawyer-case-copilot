@@ -47,3 +47,10 @@ class LocalStorageBackend(StorageBackend):
             return self._cipher().decrypt(nonce, encrypted, case_id.encode())
         return content
 
+    def delete(self, key: str) -> None:
+        root = settings.upload_dir.resolve()
+        target = (settings.upload_dir / key).resolve()
+        if root not in target.parents:
+            raise ValueError("拒绝删除上传目录之外的文件。")
+        if target.exists() and target.is_file():
+            target.unlink()

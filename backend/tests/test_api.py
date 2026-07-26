@@ -138,3 +138,96 @@ def test_report_citations_scenario_and_rules_are_safe():
         assert rules.status_code == 200
         personal = next(item for item in rules.json() if item["filename"] == "personal_experience_rules.yaml")
         assert personal["rule_count"] == 0
+
+
+def test_real_case_path_extracts_only_uploaded_traffic_material():
+    with TestClient(app) as client:
+        created = client.post("/api/cases", json={
+            "title": "非演示交通事故材料抽取测试",
+            "case_type": "traffic_injury",
+            "stage": "材料整理",
+            "client_name": "测试委托人",
+            "opposing_party": "测试对方",
+            "lead_lawyer": "测试律师",
+        })
+        assert created.status_code == 201
+        case = created.json()
+        assert case["is_demo"] is False
+
+        materials = {
+            "道路交通事故认定书.txt": (
+                "道路交通事故认定书\n"
+                "事故时间：2026年1月2日\n"
+                "事故地点：海州市长安路与平安路交叉口\n"
+                "责任认定：王某承担主要责任，赵某承担次要责任。\n"
+            ),
+            "住院病历.txt": (
+                "医疗机构：海州市第一人民医院\n"
+                "诊断：左胫骨骨折。\n"
+                "入院日期：2026年1月2日\n"
+                "出院日期：2026年1月10日\n"
+                "住院治疗8日。\n"
+            ),
+            "医疗费用票据.txt": (
+                "医疗费用票据\n"
+                "医疗机构：海州市第一人民医院\n"
+                "票据号：INV-2026-001\n"
+                "日期：2026年1月10日\n"
+                "金额：12345.67元\n"
+            ),
+            "车辆保险材料.txt": (
+                "保险公司：中国测试财产保险公司\n"
+                "保单号：POLICY-2026-8888\n"
+                "保险责任：交强险责任限额以保单原文为准。\n"
+            ),
+        }
+        for filename, content in materials.items():
+            response = client.post(
+                f"/api/cases/{case['id']}/documents",
+                files={"file": (filename, content.encode("utf-8"), "text/plain")},
+            )
+            assert response.status_code == 201
+
+        run = client.post(f"/api/cases/{case['id']}/runs", json={"trigger_type": "test"})
+        assert run.status_code == 201
+        assert run.json()["status"] == "awaiting_review"
+        workspace = client.get(f"/api/cases/{case['id']}/workspace").json()
+
+        assert workspace["traffic_accident"][0]["accident_date"] == "2026-01-02"
+        assert workspace["traffic_accident"][0]["location"] == "海州市长安路与平安路交叉口"
+        assert any("左胫骨骨折" in item["diagnosis_text"] for item in workspace["injuries"])
+        assert any(item["amount"] == 12345.67 for item in workspace["medical_expenses"])
+        assert any(item["insurer"] == "中国测试财产保险公司" for item in workspace["insurance"])
+        assert len(workspace["compensation_items"]) == 13
+
+        serialized = str(workspace)
+        assert "DEMO-MED-20250326" not in serialized
+        assert "明州市中心医院" not in serialized
+        assert "18640.5" not in serialized
+        assert "腰痛记载" not in serialized
+        assert all(item["sources"] for item in workspace["injuries"])
+        assert all(item["sources"] for item in workspace["medical_expenses"])
+
+
+def test_real_contract_path_does_not_reuse_demo_dispute():
+    with TestClient(app) as client:
+        case = client.post("/api/cases", json={
+            "title": "非演示合同材料测试",
+            "case_type": "contract",
+            "stage": "材料整理",
+            "client_name": "甲方",
+            "opposing_party": "乙方",
+        }).json()
+        response = client.post(
+            f"/api/cases/{case['id']}/documents",
+            files={"file": (
+                "采购合同.txt",
+                "采购合同\n签署日期：2026年2月3日\n合同金额：50000元\n".encode("utf-8"),
+                "text/plain",
+            )},
+        )
+        assert response.status_code == 201
+        assert client.post(f"/api/cases/{case['id']}/runs", json={"trigger_type": "test"}).status_code == 201
+        workspace = client.get(f"/api/cases/{case['id']}/workspace").json()
+        assert any(item["title"] == "合同关系、履行过程及争议事实待律师确认" for item in workspace["issues"])
+        assert all("服务成果是否符合合同约定" not in item["title"] for item in workspace["issues"])

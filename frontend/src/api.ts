@@ -1,4 +1,4 @@
-import type { CaseItem, CurrentUser, DocumentPreview, KnowledgeSource, Member, PortfolioMetrics, QualityReport, Workspace } from './types'
+import type { CaseItem, CurrentUser, DocumentPreview, KnowledgeSource, Member, PortfolioMetrics, QualityReport, ReadinessReport, Workspace } from './types'
 import type { AuthStatus } from './demoMode'
 
 const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
@@ -71,6 +71,7 @@ export const api = {
   }),
   auditLogs: (caseId: string) => request<Array<Record<string, any>>>(`/cases/${caseId}/audit-logs`),
   trafficRules: () => request<Array<Record<string, any>>>('/traffic-injury/rules'),
+  systemReadiness: () => request<ReadinessReport>('/system/readiness'),
   compensationScenario: (caseId: string, parameters: Record<string, number>) => request<Record<string, any>>(`/cases/${caseId}/compensation-scenario`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ parameters }),
   }),

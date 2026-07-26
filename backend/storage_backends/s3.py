@@ -22,7 +22,12 @@ class S3StorageBackend(StorageBackend):
         )
         try:
             self.client.head_bucket(Bucket=settings.s3_bucket)
-        except ClientError:
+        except ClientError as exc:
+            error_code = str(exc.response.get("Error", {}).get("Code", ""))
+            if error_code not in {"404", "NoSuchBucket", "NotFound"}:
+                raise RuntimeError(
+                    f"无法访问已配置的对象存储桶 {settings.s3_bucket}：{error_code or 'unknown'}"
+                ) from exc
             params = {"Bucket": settings.s3_bucket}
             if not settings.s3_endpoint_url and settings.s3_region not in {"", "auto", "us-east-1"}:
                 params["CreateBucketConfiguration"] = {"LocationConstraint": settings.s3_region}
@@ -41,3 +46,6 @@ class S3StorageBackend(StorageBackend):
     def get(self, key: str) -> bytes:
         response = self.client.get_object(Bucket=settings.s3_bucket, Key=key)
         return response["Body"].read()
+
+    def delete(self, key: str) -> None:
+        self.client.delete_object(Bucket=settings.s3_bucket, Key=key)

@@ -19,6 +19,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m compileall .
       - run: python -m pytest -q
+      - run: python -m evaluation.run_suite
 
   frontend:
     runs-on: ubuntu-latest
@@ -33,4 +34,5 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - run: npm audit --omit=dev
       - run: npm run build

@@ -14,7 +14,7 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    image: ${MINIO_IMAGE:-minio/minio:latest}
     command: server /data --console-address :9001
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
@@ -22,11 +22,22 @@ services:
     volumes:
       - minio_data:/data
 
+  clamav:
+    image: ${CLAMAV_IMAGE:-clamav/clamav:stable}
+    volumes:
+      - clamav_data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdscan", "--ping", "1"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+
   backend:
     build: ./backend
     command: sh -c "alembic -c alembic.ini upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
     environment:
       APP_ENV: production
+      SEED_DEMO_DATA: "false"
       DATABASE_URL: postgresql+psycopg://lawyer_case:${POSTGRES_PASSWORD}@postgres:5432/lawyer_case_copilot
       AUTH_MODE: enabled
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
@@ -37,13 +48,23 @@ services:
       S3_BUCKET: ${S3_BUCKET:-lawyer-case-files}
       S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      ENCRYPT_UPLOADS: "true"
       WORKFLOW_EXECUTION_MODE: queue
       ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES: "false"
+      MALWARE_SCAN_PROVIDER: clamav
+      MALWARE_SCAN_REQUIRED: "true"
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: "3310"
+      DATA_RETENTION_DAYS: ${DATA_RETENTION_DAYS:?set DATA_RETENTION_DAYS}
+      REQUIRE_PERSONAL_EXPERIENCE_RULES: ${REQUIRE_PERSONAL_EXPERIENCE_RULES:-true}
+      ENFORCE_PRODUCTION_READINESS: "true"
     depends_on:
       postgres:
         condition: service_healthy
       minio:
         condition: service_started
+      clamav:
+        condition: service_healthy
 
   worker:
     build: ./backend
@@ -81,3 +102,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  clamav_data:

@@ -62,3 +62,9 @@ export type KnowledgeSource = {
   published_or_updated_at: string; jurisdiction: string; applicability_scope: string;
   effective_status: string; verified_by: string; stale_risk: boolean;
 }
+
+export type ReadinessReport = {
+  ready: boolean; environment: string; failure_count: number; warning_count: number;
+  disclaimer: string;
+  checks: Array<{ id: string; status: 'pass' | 'warn' | 'fail'; message: string }>;
+}
