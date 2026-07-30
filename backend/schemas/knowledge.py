@@ -25,4 +25,5 @@ class KnowledgeSearch(BaseModel):
     query: str = Field(min_length=1, max_length=1000)
     scopes: list[str] = Field(default_factory=lambda: ["general"])
     limit: int = Field(default=5, ge=1, le=20)
-
+    verified_only: bool = False
+    exclude_historical: bool = False

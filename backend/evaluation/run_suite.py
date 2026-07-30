@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import select
@@ -247,7 +248,6 @@ def run_suite(dataset: Path) -> dict:
                 {
                     "id": definition["id"],
                     "fixture": definition.get("fixture", "demo"),
-                    "case_id": case.id,
                     "passed": not failures,
                     "failures": failures,
                     "specialist_source_coverage": round(specialist_coverage, 4),
@@ -264,6 +264,8 @@ def run_suite(dataset: Path) -> dict:
     ]
     return {
         "passed": passed_count == len(results),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "schema_version": "1.0",
         "summary": {
             "dataset_label": "完全虚构的 Demo 与非 Demo 结构化回归集",
             "total_scenarios": len(results),

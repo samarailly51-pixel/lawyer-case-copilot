@@ -1,5 +1,7 @@
 {
   "passed": true,
+  "generated_at": "2026-07-30T09:39:02.203663+00:00",
+  "schema_version": "1.0",
   "summary": {
     "dataset_label": "完全虚构的 Demo 与非 Demo 结构化回归集",
     "total_scenarios": 9,
@@ -12,7 +14,6 @@
     {
       "id": "contract-demo-traceability",
       "fixture": "demo",
-      "case_id": "53f989e9-cde2-42b7-a434-c9592c60ca2b",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
@@ -43,7 +44,6 @@
     {
       "id": "contract-demo-review-boundary",
       "fixture": "demo",
-      "case_id": "53f989e9-cde2-42b7-a434-c9592c60ca2b",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
@@ -74,7 +74,6 @@
     {
       "id": "traffic-demo-specialist",
       "fixture": "demo",
-      "case_id": "1fbb0c62-239f-41f9-ac5a-764038f7bf4b",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
@@ -106,7 +105,6 @@
     {
       "id": "traffic-demo-evidence-gap",
       "fixture": "demo",
-      "case_id": "1fbb0c62-239f-41f9-ac5a-764038f7bf4b",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
@@ -138,7 +136,6 @@
     {
       "id": "traffic-demo-conflict",
       "fixture": "demo",
-      "case_id": "1fbb0c62-239f-41f9-ac5a-764038f7bf4b",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
@@ -170,7 +167,6 @@
     {
       "id": "traffic-demo-safety-boundary",
       "fixture": "demo",
-      "case_id": "1fbb0c62-239f-41f9-ac5a-764038f7bf4b",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
@@ -202,12 +198,11 @@
     {
       "id": "traffic-real-path-material-fidelity",
       "fixture": "non_demo_traffic",
-      "case_id": "0197961f-b4b0-446a-a182-fe48affd0698",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
       "quality": {
-        "case_id": "0197961f-b4b0-446a-a182-fe48affd0698",
+        "case_id": "592bb757-8b73-4596-abb1-781410b59abb",
         "overall_score": 0.65,
         "document_parse_rate": 1.0,
         "document_quality_score": 1.0,
@@ -234,12 +229,11 @@
     {
       "id": "traffic-real-path-no-demo-leakage",
       "fixture": "non_demo_traffic",
-      "case_id": "0197961f-b4b0-446a-a182-fe48affd0698",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
       "quality": {
-        "case_id": "0197961f-b4b0-446a-a182-fe48affd0698",
+        "case_id": "592bb757-8b73-4596-abb1-781410b59abb",
         "overall_score": 0.65,
         "document_parse_rate": 1.0,
         "document_quality_score": 1.0,
@@ -266,12 +260,11 @@
     {
       "id": "contract-real-path-generic-analysis",
       "fixture": "non_demo_contract",
-      "case_id": "65dcb642-44b9-4f3b-901a-10fed383e9a4",
       "passed": true,
       "failures": [],
       "specialist_source_coverage": 1.0,
       "quality": {
-        "case_id": "65dcb642-44b9-4f3b-901a-10fed383e9a4",
+        "case_id": "26a3fd01-be1d-400b-9d30-61eaf2078be1",
         "overall_score": 0.85,
         "document_parse_rate": 1.0,
         "document_quality_score": 1.0,

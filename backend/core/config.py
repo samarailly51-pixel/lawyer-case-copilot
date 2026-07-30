@@ -22,6 +22,14 @@ class Settings:
     ).lower() == "true"
     serve_frontend: bool = os.getenv("SERVE_FRONTEND", "false").lower() == "true"
     frontend_dist_dir: Path = Path(os.getenv("FRONTEND_DIST_DIR", "../frontend/dist"))
+    cors_allowed_origins: tuple[str, ...] = tuple(
+        value.strip()
+        for value in os.getenv(
+            "CORS_ALLOWED_ORIGINS",
+            "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5180,http://127.0.0.1:5180",
+        ).split(",")
+        if value.strip()
+    )
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./lawyer_case_copilot.db")
     upload_dir: Path = Path(os.getenv("UPLOAD_DIR", "./storage/uploads"))
     model_provider: str = os.getenv("MODEL_PROVIDER", "mock")
@@ -30,6 +38,7 @@ class Settings:
     model_name: str = os.getenv("MODEL_NAME", "")
     model_temperature: float = float(os.getenv("MODEL_TEMPERATURE", "0.1"))
     model_timeout_seconds: int = int(os.getenv("MODEL_TIMEOUT_SECONDS", "60"))
+    model_max_retries: int = max(0, min(5, int(os.getenv("MODEL_MAX_RETRIES", "2"))))
     allow_external_model_for_case_files: bool = os.getenv("ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES", "false").lower() == "true"
     ocr_provider: str = os.getenv("OCR_PROVIDER", "disabled")
     tesseract_cmd: str = os.getenv("TESSERACT_CMD", "")

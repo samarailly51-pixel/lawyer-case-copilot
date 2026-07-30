@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import hashlib
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -200,6 +202,39 @@ def portfolio_metrics(actor: Actor = Depends(get_current_actor), db: Session = D
     }
 
 
+@router.get("/evaluation/latest")
+def latest_evaluation(actor: Actor = Depends(get_current_actor)):
+    """Expose the checked-in synthetic regression evidence without running jobs in a request."""
+    result_path = Path(__file__).resolve().parents[2] / "evals" / "latest-results.json"
+    if not result_path.exists():
+        return {
+            "generated_at": None,
+            "summary": {
+                "dataset_label": "完全虚构的 Demo 与非 Demo 结构化回归集",
+                "total_scenarios": 0,
+                "passed_scenarios": 0,
+                "pass_rate": 0,
+                "average_fact_source_coverage": 0,
+                "scope_note": "尚未生成评测快照，请运行 python -m evaluation.run_suite。",
+            },
+            "results": [],
+            "limitations": [
+                "该评测只验证结构完整性、材料忠实性、可追溯性和人工复核边界。",
+                "它不代表真实案件准确率、法律正确率、医疗判断或业务效果。",
+            ],
+        }
+    try:
+        payload = json.loads(result_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(503, f"评测快照不可用：{exc}") from exc
+    payload["limitations"] = [
+        "全部评测材料均为完全虚构的合成样例。",
+        "100% 仅表示当前合成回归断言通过，不代表真实案件准确率。",
+        "真实脱敏数据集、律师标注阈值和业务效果仍须由项目所有者补充。",
+    ]
+    return payload
+
+
 @router.post("/cases", response_model=CaseOut, status_code=201)
 def create_case(payload: CaseCreate, actor: Actor = Depends(get_current_actor), db: Session = Depends(get_db)):
     require_role(actor, "lawyer")
@@ -382,7 +417,32 @@ def get_run(run_id: str, actor: Actor = Depends(get_current_actor), db: Session 
         raise HTTPException(404, "运行记录不存在")
     require_case_access(db, actor, run.case_id)
     nodes = list(db.scalars(select(NodeRun).where(NodeRun.run_id == run_id).order_by(NodeRun.sequence, NodeRun.created_at)))
-    return {**row_dict(run), "nodes": [row_dict(node) for node in nodes]}
+    serialized_nodes = []
+    total_duration_ms = 0
+    for node in nodes:
+        item = row_dict(node)
+        duration_ms = None
+        if node.started_at and node.completed_at:
+            duration_ms = max(0, round((node.completed_at - node.started_at).total_seconds() * 1000))
+            total_duration_ms += duration_ms
+        item["duration_ms"] = duration_ms
+        item["attempt"] = 1 + int(bool(node.supersedes_node_run_id))
+        serialized_nodes.append(item)
+    run_duration_ms = None
+    if run.started_at and run.completed_at:
+        run_duration_ms = max(0, round((run.completed_at - run.started_at).total_seconds() * 1000))
+    return {
+        **row_dict(run),
+        "duration_ms": run_duration_ms,
+        "node_duration_ms": total_duration_ms,
+        "node_counts": {
+            "completed": sum(item["status"] == "completed" for item in serialized_nodes),
+            "failed": sum(item["status"] == "failed" for item in serialized_nodes),
+            "skipped": sum(item["status"] == "skipped" for item in serialized_nodes),
+            "rerun": sum(bool(item["supersedes_node_run_id"]) for item in serialized_nodes),
+        },
+        "nodes": serialized_nodes,
+    }
 
 
 @router.post("/runs/{run_id}/nodes/{node_name}/rerun")
@@ -445,7 +505,10 @@ def list_knowledge_sources(scope: str | None = None, actor: Actor = Depends(get_
 
 @router.post("/knowledge/search")
 def knowledge_search(payload: KnowledgeSearch, actor: Actor = Depends(get_current_actor), db: Session = Depends(get_db)):
-    return [row_dict(item) for item in search_knowledge(db, payload.query, payload.scopes, payload.limit, actor.workspace_id)]
+    return [row_dict(item) for item in search_knowledge(
+        db, payload.query, payload.scopes, payload.limit, actor.workspace_id,
+        payload.verified_only, payload.exclude_historical,
+    )]
 
 
 @router.post("/cases/{case_id}/legal-retrieval")
@@ -453,7 +516,10 @@ def retrieve_for_case(case_id: str, payload: KnowledgeSearch, actor: Actor = Dep
     require_case_access(db, actor, case_id, "assistant")
     if not db.get(Case, case_id):
         raise HTTPException(404, "案件不存在")
-    sources = search_knowledge(db, payload.query, payload.scopes, payload.limit, actor.workspace_id)
+    sources = search_knowledge(
+        db, payload.query, payload.scopes, payload.limit, actor.workspace_id,
+        payload.verified_only, payload.exclude_historical,
+    )
     citations = []
     for source in sources:
         item = LegalCitation(
@@ -595,8 +661,10 @@ def traffic_rule_catalog(actor: Actor = Depends(get_current_actor)):
     for filename in ("evidence_completeness.yaml", "personal_experience_rules.yaml"):
         validation = validate_rule_file(root / filename)
         payload = validation.payload
+        file_sha256 = hashlib.sha256((root / filename).read_bytes()).hexdigest()
         catalog.append({
             "filename": filename, "version": payload.get("version", 1),
+            "file_sha256": file_sha256,
             "description": payload.get("description", "系统证据完整性规则"),
             "rule_count": len(payload.get("rules") or []), "rules": payload.get("rules") or [],
             "enabled_rule_count": validation.enabled_rule_count,

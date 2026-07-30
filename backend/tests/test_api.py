@@ -138,6 +138,25 @@ def test_report_citations_scenario_and_rules_are_safe():
         assert rules.status_code == 200
         personal = next(item for item in rules.json() if item["filename"] == "personal_experience_rules.yaml")
         assert personal["rule_count"] == 0
+        assert len(personal["file_sha256"]) == 64
+
+
+def test_evaluation_snapshot_and_observability_are_exposed():
+    with TestClient(app) as client:
+        evaluation = client.get("/api/evaluation/latest")
+        assert evaluation.status_code == 200
+        assert evaluation.json()["summary"]["total_scenarios"] == 9
+        assert evaluation.json()["summary"]["passed_scenarios"] == 9
+        assert evaluation.json()["limitations"]
+
+        case = next(item for item in client.get("/api/cases").json() if item["case_type"] == "traffic_injury")
+        run = client.get(f"/api/cases/{case['id']}/runs").json()[0]
+        detail = client.get(f"/api/runs/{run['id']}")
+        assert detail.status_code == 200
+        payload = detail.json()
+        assert payload["node_counts"]["completed"] >= 1
+        assert payload["duration_ms"] >= 0
+        assert all("duration_ms" in node and "attempt" in node for node in payload["nodes"])
 
 
 def test_real_case_path_extracts_only_uploaded_traffic_material():

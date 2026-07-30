@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Lawyer Case Copilot：面向案件负责律师的可追溯案件工作空间，展示通用办案能力与交通事故人伤专业模块。" />
+  <meta name="theme-color" content="#0f1f33" />
+  <title>Lawyer Case Copilot｜律师案件智能助理</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="返回首页">
+      <span class="brand-mark">L</span>
+      <span><strong>Lawyer Case Copilot</strong><small>律师案件智能助理</small></span>
+    </a>
+    <nav aria-label="页面导航">
+      <a href="#workflow">工作流</a>
+      <a href="#evidence">产品证据</a>
+      <a href="#demo">一分钟演示</a>
+      <a href="https://github.com/samarailly51-pixel/lawyer-case-copilot" target="_blank" rel="noreferrer">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">AI PRODUCT · AGENT WORKFLOW · LEGAL TECH</p>
+        <h1>把案件材料，组织成<br /><em>可追溯的律师工作流</em></h1>
+        <p class="lead">
+          不是普通法律问答机器人，而是围绕具体案件运行的工作空间。
+          从材料解析、事实与时间线，到证据核查、专业风险提示和律师复核。
+        </p>
+        <div class="actions">
+          <a class="button primary" href="#demo">观看一分钟演示</a>
+          <a class="button secondary" href="https://github.com/samarailly51-pixel/lawyer-case-copilot" target="_blank" rel="noreferrer">查看源码与文档</a>
+        </div>
+        <div class="boundary"><strong>安全边界</strong> 系统只提供办案辅助，不构成正式法律意见；关键结论必须由案件负责律师确认。</div>
+      </div>
+      <div class="hero-visual" aria-label="产品界面预览">
+        <div class="window-bar"><i></i><i></i><i></i><span>CASE WORKSPACE / TRAFFIC INJURY</span></div>
+        <img src="./assets/traffic-analysis.webp" alt="交通事故人伤专业分析界面" />
+        <div class="floating-card card-one"><span>材料引用覆盖</span><strong>100%</strong><small>完全虚构回归集</small></div>
+        <div class="floating-card card-two"><span>专业赔偿项目</span><strong>13</strong><small>证据与参数矩阵</small></div>
+      </div>
+    </section>
+
+    <section class="proof-strip" aria-label="项目关键指标">
+      <article><strong>2</strong><span>完全虚构 Demo 案例</span></article>
+      <article><strong>13</strong><span>交通事故赔偿项目</span></article>
+      <article><strong>9 / 9</strong><span>合成回归场景通过</span></article>
+      <article><strong>Human</strong><span>高风险律师复核</span></article>
+    </section>
+
+    <section class="section" id="workflow">
+      <div class="section-heading">
+        <p class="eyebrow">WORKFLOW ORCHESTRATION</p>
+        <h2>一个编排器，多组结构化节点</h2>
+        <p>通用能力与专业规则解耦。节点保留输入、输出、警告、版本和运行记录，不把所有能力包装成互相对话的独立 Agent。</p>
+      </div>
+      <div class="workflow">
+        <article><b>01</b><h3>材料处理</h3><p>PDF、Word、图片与文本解析，分类、切片、质量检查和 Prompt Injection 风险提示。</p></article>
+        <article><b>02</b><h3>事实建模</h3><p>抽取主体、时间、行为、金额和冲突；每条事实绑定来源文件、页码与原文。</p></article>
+        <article><b>03</b><h3>领域路由</h3><p>通用案件进入基础工作流，交通事故人伤案件加载独立专业节点与 YAML 规则。</p></article>
+        <article><b>04</b><h3>人工复核</h3><p>律师接受、修改或驳回 AI 结果；系统保留版本、错误类型和完整审计记录。</p></article>
+      </div>
+    </section>
+
+    <section class="section evidence-section" id="evidence">
+      <div class="section-heading">
+        <p class="eyebrow">EVIDENCE, NOT CLAIMS</p>
+        <h2>产品能力用界面、引用和评测证明</h2>
+        <p>公开展示只使用完全虚构数据。100% 指合成回归集中的材料来源覆盖，不代表真实案件准确率或法律正确率。</p>
+      </div>
+      <div class="showcase">
+        <figure class="shot wide">
+          <img src="./assets/evidence-matrix.webp" alt="事实与证据矩阵界面" loading="lazy" />
+          <figcaption><strong>证据矩阵</strong><span>区分已有证据、缺失材料与信息冲突</span></figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="./assets/agent-run.webp" alt="Agent 工作流运行界面" loading="lazy" />
+          <figcaption><strong>可观察执行</strong><span>节点状态、警告和单节点重跑</span></figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="./assets/human-review.webp" alt="律师复核中心界面" loading="lazy" />
+          <figcaption><strong>律师复核</strong><span>接受、修改、驳回与版本留痕</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section architecture">
+      <div>
+        <p class="eyebrow">TECHNICAL DESIGN</p>
+        <h2>为企业 AI 应用设计的克制架构</h2>
+        <p>React + TypeScript 前端，FastAPI + SQLAlchemy 后端，SQLite 可迁移 PostgreSQL；Provider Adapter、Retriever 接口和 Domain Plugin 均可替换。</p>
+      </div>
+      <div class="architecture-grid">
+        <span>React / TypeScript</span><span>FastAPI / Pydantic</span>
+        <span>SQLAlchemy / PostgreSQL</span><span>RAG / Verified Sources</span>
+        <span>YAML Rule Engine</span><span>Human Review</span>
+        <span>Audit / Replay</span><span>Model-agnostic Adapter</span>
+      </div>
+    </section>
+
+    <section class="section video-section" id="demo">
+      <div class="section-heading">
+        <p class="eyebrow">60-SECOND PRODUCT TOUR</p>
+        <h2>一分钟看完完整办案链路</h2>
+        <p>画面与案例数据均为虚构，中文配音演示从案件空间、专业分析到律师复核和辅助报告。</p>
+      </div>
+      <div class="video-frame">
+        <video controls preload="metadata" poster="./assets/traffic-analysis.webp">
+          <source src="./assets/lawyer-case-copilot-demo.mp4" type="video/mp4" />
+          当前浏览器不支持视频播放。
+        </video>
+      </div>
+    </section>
+
+    <section class="closing">
+      <p class="eyebrow">PORTFOLIO PROJECT</p>
+      <h2>面向 AI 产品经理、Agent 产品与企业 AI 应用岗位</h2>
+      <p>项目重点不是堆砌 Agent，而是把业务边界、领域规则、可追溯性、人工复核和评测体系落实到一个可运行产品中。</p>
+      <a class="button primary" href="https://github.com/samarailly51-pixel/lawyer-case-copilot" target="_blank" rel="noreferrer">阅读 Case Study</a>
+    </section>
+  </main>
+
+  <footer>
+    <span>Lawyer Case Copilot</span>
+    <span>完全虚构 Demo · 仅供办案辅助 · 不构成法律意见</span>
+  </footer>
+</body>
+</html>

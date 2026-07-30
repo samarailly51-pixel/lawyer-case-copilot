@@ -1,4 +1,4 @@
-import type { CaseItem, CurrentUser, DocumentPreview, KnowledgeSource, Member, PortfolioMetrics, QualityReport, ReadinessReport, Workspace } from './types'
+import type { CaseItem, CurrentUser, DocumentPreview, EvaluationReport, KnowledgeSource, Member, PortfolioMetrics, QualityReport, ReadinessReport, Workspace } from './types'
 import type { AuthStatus } from './demoMode'
 
 const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
@@ -27,12 +27,16 @@ export const api = {
   workspaces: () => request<Array<{ id: string; name: string; slug: string; role: string }>>('/workspaces'),
   cases: () => request<CaseItem[]>('/cases'),
   portfolioMetrics: () => request<PortfolioMetrics>('/portfolio-metrics'),
+  latestEvaluation: () => request<EvaluationReport>('/evaluation/latest'),
   createCase: (payload: Record<string, string>) => request<CaseItem>('/cases', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
   }),
   workspace: (id: string) => request<Workspace>(`/cases/${id}/workspace`),
   quality: (id: string) => request<QualityReport>(`/cases/${id}/quality`),
   knowledge: () => request<KnowledgeSource[]>('/knowledge/sources'),
+  searchKnowledge: (payload: { query: string; scopes: string[]; limit?: number; verified_only?: boolean; exclude_historical?: boolean }) => request<KnowledgeSource[]>('/knowledge/search', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+  }),
   addKnowledge: (payload: Record<string, unknown>) => request<KnowledgeSource>('/knowledge/sources', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
   }),
