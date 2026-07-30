@@ -10,6 +10,20 @@ export type PortfolioMetrics = {
   mandatory_risk_count: number; unsupported_model_outputs_rejected: number; disclaimer: string;
 }
 
+export type EvaluationReport = {
+  generated_at?: string | null;
+  summary: {
+    dataset_label: string; total_scenarios: number; passed_scenarios: number;
+    pass_rate: number; average_fact_source_coverage: number; scope_note: string;
+  };
+  results: Array<{
+    id: string; fixture: string; passed: boolean; failures: string[];
+    specialist_source_coverage?: number;
+    quality?: { fact_source_coverage: number; overall_score?: number };
+  }>;
+  limitations: string[];
+}
+
 export type Source = { document_id: string; filename: string; page_number?: number; quote: string }
 export type Reviewable = { id: string; review_status: string; confidence?: number; version?: number; sources?: Source[] }
 export type DocumentItem = { id: string; filename: string; category: string; parse_status: string; parse_warning: string; page_count: number; created_at: string }
@@ -17,7 +31,7 @@ export type Fact = Reviewable & { fact_type: string; content: string; event_date
 export type TimelineEvent = Reviewable & { event_date?: string; title: string; description: string; has_conflict: boolean; needs_verification: boolean }
 export type Evidence = Reviewable & { name: string; evidence_type: string; fact_to_prove: string; support_status: string }
 export type MissingMaterial = Reviewable & { name: string; reason: string; priority: string; suggested_action: string; rule_id?: string }
-export type Risk = Reviewable & { risk_type: string; description: string; trigger_basis: string; level: string; suggested_review: string; mandatory_human_review: boolean }
+export type Risk = Reviewable & { risk_type: string; description: string; trigger_basis: string; level: string; suggested_review: string; mandatory_human_review: boolean; rule_id?: string }
 export type Compensation = Reviewable & { name: string; evidence_summary: string; missing_evidence: string; required_parameters: string[]; risk_note: string }
 
 export type Workspace = {

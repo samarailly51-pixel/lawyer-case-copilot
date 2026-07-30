@@ -66,6 +66,11 @@ class WorkflowOrchestrator:
                     "traffic_evidence": evidence_rules.enabled_rule_count,
                     "personal_experience": personal_rules.enabled_rule_count,
                 },
+                "retry_policy": {
+                    "provider_max_retries": settings.model_max_retries,
+                    "provider_retryable": ["timeout", "http_429", "http_5xx"],
+                    "node_retry": "manual_single_node",
+                },
             },
         )
         self.db.add(run)

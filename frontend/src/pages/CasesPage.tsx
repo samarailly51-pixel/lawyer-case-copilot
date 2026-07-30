@@ -32,7 +32,7 @@ export default function CasesPage() {
   return <div className="case-list-shell">
     <header className="topbar">
       <div className="brand"><span className="brand-mark">L</span><div><strong>Lawyer Case Copilot</strong><small>律师案件智能助理</small></div></div>
-      <div className="top-actions"><Link to="/knowledge" className="ghost">知识资料库</Link><Link to="/settings" className="ghost">律所设置</Link>{workspaces.length > 1 && <select className="workspace-select" value={localStorage.getItem('lcc_workspace') || ''} onChange={e => { localStorage.setItem('lcc_workspace', e.target.value); location.reload() }}>{workspaces.map(w => <option value={w.id} key={w.id}>{w.name}</option>)}</select>}<div className="user-chip"><span>{identity?.name?.slice(0, 1) || '律'}</span><div>{identity?.name || '案件负责人'}<small>{identity?.workspace || '本地工作空间'} · {identity?.role || 'lawyer'}</small></div></div></div>
+      <div className="top-actions"><Link to="/evaluation" className="ghost">评测与规则</Link><Link to="/knowledge" className="ghost">知识资料库</Link><Link to="/settings" className="ghost">律所设置</Link>{workspaces.length > 1 && <select className="workspace-select" value={localStorage.getItem('lcc_workspace') || ''} onChange={e => { localStorage.setItem('lcc_workspace', e.target.value); location.reload() }}>{workspaces.map(w => <option value={w.id} key={w.id}>{w.name}</option>)}</select>}<div className="user-chip"><span>{identity?.name?.slice(0, 1) || '律'}</span><div>{identity?.name || '案件负责人'}<small>{identity?.workspace || '本地工作空间'} · {identity?.role || 'lawyer'}</small></div></div></div>
     </header>
     <main className="case-list-main">
       <section className="page-intro">

@@ -11,6 +11,7 @@ frontend/dist/
 .pytest_cache/
 .test-tmp*/
 .demo-runtime/
+video_assets/
 *.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts

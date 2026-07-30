@@ -37,8 +37,16 @@ def _terms(query: str) -> set[str]:
 
 
 def search_knowledge(db: Session, query: str, scopes: list[str], limit: int = 5,
-                     workspace_id: str | None = None) -> list[KnowledgeSource]:
+                     workspace_id: str | None = None, verified_only: bool = False,
+                     exclude_historical: bool = False) -> list[KnowledgeSource]:
     statement = select(KnowledgeSource).where(KnowledgeSource.scope.in_(scopes))
+    if verified_only:
+        statement = statement.where(
+            KnowledgeSource.effective_status == "verified_effective",
+            KnowledgeSource.stale_risk.is_(False),
+        )
+    elif exclude_historical:
+        statement = statement.where(KnowledgeSource.effective_status != "historical")
     if workspace_id:
         statement = statement.join(
             KnowledgeWorkspaceLink, KnowledgeWorkspaceLink.knowledge_source_id == KnowledgeSource.id

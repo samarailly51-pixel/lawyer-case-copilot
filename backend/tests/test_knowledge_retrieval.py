@@ -72,3 +72,40 @@ def test_knowledge_search_respects_scope():
         )
         db.commit()
         assert item not in search_knowledge(db, "限定范围检索", ["traffic_injury"])
+
+
+def test_verified_only_filter_excludes_stale_and_unverified_sources():
+    with SessionLocal() as db:
+        verified = _source(
+            db,
+            title="核验过滤有效样例",
+            status="verified_effective",
+            stale=False,
+            updated=date(2026, 7, 1),
+        )
+        stale = _source(
+            db,
+            title="核验过滤过期样例",
+            status="verified_effective",
+            stale=True,
+            updated=date(2026, 7, 1),
+        )
+        pending = _source(
+            db,
+            title="核验过滤待核样例",
+            status="verification_required",
+            stale=False,
+            updated=date(2026, 7, 1),
+        )
+        db.commit()
+        results = search_knowledge(
+            db,
+            "核验过滤",
+            ["general"],
+            limit=10,
+            verified_only=True,
+        )
+        result_ids = {item.id for item in results}
+        assert verified.id in result_ids
+        assert stale.id not in result_ids
+        assert pending.id not in result_ids

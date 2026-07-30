@@ -6,6 +6,7 @@ import WorkspacePage from './pages/WorkspacePage'
 import LoginPage from './pages/LoginPage'
 import KnowledgePage from './pages/KnowledgePage'
 import SettingsPage from './pages/SettingsPage'
+import EvaluationPage from './pages/EvaluationPage'
 import { AuthStatus, DemoModeProvider } from './demoMode'
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,7 @@ export default function App() {
     <Route path="/" element={<Protected><CasesPage /></Protected>} />
     <Route path="/knowledge" element={<Protected><KnowledgePage /></Protected>} />
     <Route path="/settings" element={<Protected><SettingsPage /></Protected>} />
+    <Route path="/evaluation" element={<Protected><EvaluationPage /></Protected>} />
     <Route path="/cases/:caseId/:section?" element={<Protected><WorkspacePage /></Protected>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>

@@ -1,6 +1,7 @@
 # Lawyer Case Copilot｜律师案件智能助理
 
 [![CI](https://github.com/samarailly51-pixel/lawyer-case-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/samarailly51-pixel/lawyer-case-copilot/actions/workflows/ci.yml)
+[![Portfolio](https://img.shields.io/badge/Portfolio-GitHub%20Pages-245982)](https://samarailly51-pixel.github.io/lawyer-case-copilot/)
 ![React](https://img.shields.io/badge/React-TypeScript-315f89)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Python-287153)
 ![Demo Data](https://img.shields.io/badge/Data-100%25%20Synthetic-b68a52)
@@ -27,7 +28,7 @@
        → 证据与风险 → 律师人工复核 → 带引用的辅助报告
 ```
 
-快速入口：[产品 Case Study](docs/case-study.md) · [三分钟 Demo](docs/demo-script.md) · [面试讲解](docs/interview-guide.md) · [评测结果](docs/evaluation-report.md)
+快速入口：[零冷启动作品集](https://samarailly51-pixel.github.io/lawyer-case-copilot/) · [一分钟视频](https://samarailly51-pixel.github.io/lawyer-case-copilot/#demo) · [产品 Case Study](docs/case-study.md) · [三分钟 Demo](docs/demo-script.md) · [面试讲解](docs/interview-guide.md) · [评测结果](docs/evaluation-report.md)
 
 ## MVP 能力
 
@@ -76,6 +77,10 @@
 - 非 Demo 交通案件采用结构化 Schema、逐字来源校验和保守本地降级，不再复用展示案例固定事实；
 - 上传恶意文件扫描、规则 Schema 校验、数据保留清理和生产准入门禁；
 - 管理员设置页可查看生产配置阻断项。
+- 评测与规则中心展示回归场景、事实来源覆盖、规则版本、文件哈希和真实业务评测边界；
+- 工作流节点可展开查看输入/输出、耗时、警告、错误、规则快照和重跑替代关系；
+- 外部模型仅对超时、HTTP 429 和 5xx 进行有限重试，其他错误立即进入保守降级；
+- 知识检索支持“仅已核验且无过期风险”过滤。
 
 ## 技术架构
 
@@ -109,6 +114,12 @@ powershell -ExecutionPolicy Bypass -File scripts/start-demo.ps1
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/stop-demo.ps1
+```
+
+如默认端口被其他项目占用，可使用隔离端口启动；脚本会在启动前检查冲突，不会覆盖未知服务：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/start-demo.ps1 -BackendPort 8010 -FrontendPort 5180
 ```
 
 macOS/Linux：
@@ -146,7 +157,12 @@ npm run dev
 
 ## 简历公开 Demo
 
-仓库包含 Render 免费公开 Demo 配置：
+项目采用双入口：
+
+1. [GitHub Pages 静态作品集](https://samarailly51-pixel.github.io/lawyer-case-copilot/)：零冷启动、始终可访问，包含产品定位、界面截图、评测边界和一分钟视频；
+2. Render 免费交互 Demo：展示完整 React + FastAPI 案件工作台，空闲后允许休眠。
+
+`.github/workflows/pages.yml` 会在 `main` 分支的 `portfolio/` 发生变化时自动部署静态作品集。仓库同时包含 Render 免费公开 Demo 配置：
 
 - `Dockerfile.render`：将 React 与 FastAPI 合并为一个同域服务；
 - `render.yaml`：使用 Free 实例和 `/health` 健康检查；空闲 15 分钟后会休眠；
@@ -212,10 +228,11 @@ MODEL_PROVIDER=openai-compatible
 MODEL_BASE_URL=https://example.com/v1
 MODEL_API_KEY=your-secret
 MODEL_NAME=your-model
+MODEL_MAX_RETRIES=2
 ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES=true
 ```
 
-仓库不会读取或保存密钥到数据库。模型输出必须通过结构化 Schema，且关键结果仍需人工复核。默认 `ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES=false`；仅配置模型密钥不会发送案件材料，必须由部署者显式授权。
+仓库不会读取或保存密钥到数据库。模型输出必须通过结构化 Schema，且关键结果仍需人工复核。默认 `ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES=false`；仅配置模型密钥不会发送案件材料，必须由部署者显式授权。重试只覆盖超时、429 和 5xx，且最多五次；节点失败后的恢复采用可观察的单节点人工重跑。
 
 本地图片 OCR 可选启用：
 
@@ -283,6 +300,13 @@ cd ../frontend
 npm run build
 ```
 
+真实脱敏评测的空白模板和双人复核指引位于：
+
+- `evals/real_case_annotation_template.jsonl`
+- `evals/annotation-guideline.md`
+
+模板不包含真实事实、业务规则或预设准确率。
+
 ## 当前限制
 
 - 默认配置仍是免登录本地 Demo；认证、多租户和 S3 需通过环境变量启用；
@@ -309,6 +333,7 @@ npm run build
 - [三分钟 Demo 脚本](docs/demo-script.md)
 - [面试讲解指南](docs/interview-guide.md)
 - [完全虚构评测结果](docs/evaluation-report.md)
+- [评测数据与标注模板](evals/README.md)
 - [系统架构](docs/architecture.md)
 - [通用办案工作流](docs/general-workflow.md)
 - [交通事故人伤工作流](docs/traffic-injury-workflow.md)
