@@ -79,6 +79,9 @@
 - 管理员设置页可查看生产配置阻断项。
 - 评测与规则中心展示回归场景、事实来源覆盖、规则版本、文件哈希和真实业务评测边界；
 - 工作流节点可展开查看输入/输出、耗时、警告、错误、规则快照和重跑替代关系；
+- 工作流支持从失败节点恢复，或从指定节点重建全部下游结果；律师已确认记录不会被静默覆盖；
+- 页级解析元数据保存文本来源、OCR 平均置信度、识别区域坐标和低置信度区域数量；
+- 提供经授权、已脱敏、双人复核真实案例的本地离线 precision/recall/F1 评测工具；
 - 外部模型仅对超时、HTTP 429 和 5xx 进行有限重试，其他错误立即进入保守降级；
 - 知识检索支持“仅已核验且无过期风险”过滤。
 
@@ -232,7 +235,7 @@ MODEL_MAX_RETRIES=2
 ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES=true
 ```
 
-仓库不会读取或保存密钥到数据库。模型输出必须通过结构化 Schema，且关键结果仍需人工复核。默认 `ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES=false`；仅配置模型密钥不会发送案件材料，必须由部署者显式授权。重试只覆盖超时、429 和 5xx，且最多五次；节点失败后的恢复采用可观察的单节点人工重跑。
+仓库不会读取或保存密钥到数据库。模型输出必须通过结构化 Schema，且关键结果仍需人工复核。默认 `ALLOW_EXTERNAL_MODEL_FOR_CASE_FILES=false`；仅配置模型密钥不会发送案件材料，必须由部署者显式授权。重试只覆盖超时、429 和 5xx，且最多五次；节点失败后可从失败点恢复，也可由律师选择起点重建下游输出。
 
 本地图片 OCR 可选启用：
 
@@ -241,7 +244,7 @@ OCR_PROVIDER=tesseract
 TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
 ```
 
-运行环境还需安装 Tesseract 及中文语言包；扫描 PDF 会尝试用 `pypdfium2` 逐页渲染后进行本地 OCR。未启用或执行失败时，材料进入人工处理状态。
+运行环境还需安装 Tesseract 及中文语言包；扫描 PDF 会尝试用 `pypdfium2` 逐页渲染后进行本地 OCR。系统保存页级置信度、识别词块坐标和图像尺寸；低于质量阈值时进入人工处理状态。未启用或执行失败时不会猜测材料内容。
 
 存储配置：
 
@@ -305,6 +308,14 @@ npm run build
 - `evals/real_case_annotation_template.jsonl`
 - `evals/annotation-guideline.md`
 
+真实标注只在本地受控目录运行，`private-evals/` 已加入忽略规则：
+
+```bash
+cd backend
+python -m evaluation.run_labeled_eval ../private-evals/approved-cases.jsonl \
+  --output ../private-evals/latest-results.json
+```
+
 模板不包含真实事实、业务规则或预设准确率。
 
 ## 当前限制
@@ -334,6 +345,7 @@ npm run build
 - [面试讲解指南](docs/interview-guide.md)
 - [完全虚构评测结果](docs/evaluation-report.md)
 - [评测数据与标注模板](evals/README.md)
+- [可控内测试点清单](docs/controlled-pilot-checklist.md)
 - [系统架构](docs/architecture.md)
 - [通用办案工作流](docs/general-workflow.md)
 - [交通事故人伤工作流](docs/traffic-injury-workflow.md)

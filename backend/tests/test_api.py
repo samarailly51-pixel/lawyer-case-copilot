@@ -51,6 +51,20 @@ def test_node_rerun_keeps_run_observable():
         assert response.json()["status"] == "completed"
 
 
+def test_downstream_rerun_preserves_observability_and_completes():
+    with TestClient(app) as client:
+        contract = next(item for item in client.get("/api/cases").json() if item["case_type"] == "contract")
+        run = client.get(f"/api/cases/{contract['id']}/runs").json()[0]
+        response = client.post(f"/api/runs/{run['id']}/resume", json={"from_node": "risk_issue"})
+        assert response.status_code == 200
+        assert response.json()["status"] == "awaiting_review"
+        detail = client.get(f"/api/runs/{run['id']}").json()
+        rerun_nodes = [item for item in detail["nodes"] if item["node_name"] == "risk_issue"]
+        assert len(rerun_nodes) >= 2
+        assert rerun_nodes[-1]["attempt"] >= 2
+        assert rerun_nodes[-1]["input_summary"]["execution_reason"] == "downstream_rerun"
+
+
 def test_document_security_quality_and_case_metrics():
     with TestClient(app) as client:
         case = next(item for item in client.get("/api/cases").json() if item["case_type"] == "contract")
@@ -70,6 +84,20 @@ def test_document_security_quality_and_case_metrics():
         metrics = client.get(f"/api/cases/{case['id']}/quality")
         assert metrics.status_code == 200
         assert 0 <= metrics.json()["overall_score"] <= 1
+
+
+def test_uploaded_page_exposes_extraction_quality_metadata():
+    with TestClient(app) as client:
+        case = next(item for item in client.get("/api/cases").json() if item["case_type"] == "contract")
+        uploaded = client.post(
+            f"/api/cases/{case['id']}/documents",
+            files={"file": ("页级质量测试.txt", "第一页原生文本。".encode("utf-8"), "text/plain")},
+        )
+        assert uploaded.status_code == 201
+        preview = client.get(f"/api/documents/{uploaded.json()['id']}/preview").json()
+        assert preview["page_quality"]["source_mode"] == "native_text"
+        assert preview["page_quality"]["ocr_confidence"] is None
+        assert preview["page_quality"]["ocr_regions"] == []
 
 
 def test_knowledge_requires_metadata_and_is_searchable():
@@ -148,6 +176,7 @@ def test_evaluation_snapshot_and_observability_are_exposed():
         assert evaluation.json()["summary"]["total_scenarios"] == 9
         assert evaluation.json()["summary"]["passed_scenarios"] == 9
         assert evaluation.json()["limitations"]
+        assert all("case_id" not in item.get("quality", {}) for item in evaluation.json()["results"])
 
         case = next(item for item in client.get("/api/cases").json() if item["case_type"] == "traffic_injury")
         run = client.get(f"/api/cases/{case['id']}/runs").json()[0]

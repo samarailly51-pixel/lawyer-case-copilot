@@ -89,7 +89,7 @@ export default function WorkspacePage() {
         {section === 'timeline' && <Timeline data={data} />}
         {section === 'evidence' && <EvidenceMatrix data={data} />}
         {section === 'traffic' && <Traffic data={data} />}
-        {section === 'agent' && <AgentRuns detail={runDetail} runs={runs} rerun={async node => { if (runDetail) { await api.rerunNode(runDetail.id, node); setRunDetail(await api.runDetail(runDetail.id)); await load() } }} />}
+        {section === 'agent' && <AgentRuns detail={runDetail} runs={runs} rerun={async node => { if (runDetail) { await api.rerunNode(runDetail.id, node); setRunDetail(await api.runDetail(runDetail.id)); await load() } }} rerunFrom={async node => { if (runDetail) { await api.resumeRun(runDetail.id, node); setRunDetail(await api.runDetail(runDetail.id)); await load() } }} resumeFailed={async () => { if (runDetail) { await api.resumeRun(runDetail.id); setRunDetail(await api.runDetail(runDetail.id)); await load() } }} />}
         {section === 'review' && <ReviewCenter data={data} review={review} reload={load} caseId={caseId} />}
         {section === 'reports' && <Reports data={data} caseId={caseId} />}
         {section === 'relationships' && <Relationships data={data} />}
@@ -148,7 +148,7 @@ function Traffic({ data }: { data: Workspace }) {
   </>
 }
 
-function AgentRuns({ detail, runs, rerun }: { detail: Record<string, any> | null; runs: Array<Record<string, any>>; rerun: (node: string) => Promise<void> }) {
+function AgentRuns({ detail, runs, rerun, rerunFrom, resumeFailed }: { detail: Record<string, any> | null; runs: Array<Record<string, any>>; rerun: (node: string) => Promise<void>; rerunFrom: (node: string) => Promise<void>; resumeFailed: () => Promise<void> }) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const formatDuration = (value?: number | null) => value == null ? '—' : value < 1000 ? `${value} ms` : `${(value / 1000).toFixed(2)} s`
   return <><SectionTitle eyebrow="WORKFLOW OBSERVABILITY" title="Agent 执行过程" description="查看每个结构化节点的输入、输出、警告和重跑记录。" />
@@ -160,7 +160,8 @@ function AgentRuns({ detail, runs, rerun }: { detail: Record<string, any> | null
       <div><span>节点结果</span><strong>{detail ? `${detail.node_counts?.completed || 0} 成功 · ${detail.node_counts?.failed || 0} 失败` : '—'}</strong></div>
       <div><span>规则快照</span><strong>{detail?.config_snapshot?.rules_version?.traffic_evidence || '—'}</strong></div>
     </div>
-    {detail?.error && <div className="alert">运行失败：{detail.error}</div>}
+    {detail?.error && <div className="alert workflow-recovery"><span>运行失败：{detail.error}</span><button className="primary small" onClick={resumeFailed}>从失败节点恢复</button></div>}
+    <div className="boundary"><strong>重跑安全策略</strong><span>“单节点重跑”用于局部校验；“重跑此处及下游”会重建依赖结果。律师已接受或修改的记录不会被覆盖，新结果仍进入待复核队列。</span></div>
     <section className="panel workflow-list observability-list">{detail?.nodes?.map((node: Record<string, any>, index: number) => <article key={node.id} className={expanded === node.id ? 'expanded' : ''}>
       <div className={`node-index ${node.status}`}>{node.status === 'completed' ? '✓' : node.status === 'skipped' ? '—' : index + 1}</div>
       <div className="node-main">
@@ -175,7 +176,7 @@ function AgentRuns({ detail, runs, rerun }: { detail: Record<string, any> | null
         </div>}
       </div>
       <Badge tone={node.status === 'completed' ? 'success' : node.status === 'failed' ? 'danger' : 'neutral'}>{node.status}</Badge>
-      <div className="node-actions"><button className="ghost small" onClick={() => setExpanded(expanded === node.id ? null : node.id)}>{expanded === node.id ? '收起详情' : '查看详情'}</button>{node.status !== 'skipped' && <button className="ghost small" onClick={() => rerun(node.node_name)}>重新执行</button>}</div>
+      <div className="node-actions"><button className="ghost small" onClick={() => setExpanded(expanded === node.id ? null : node.id)}>{expanded === node.id ? '收起详情' : '查看详情'}</button>{node.status !== 'skipped' && <button className="ghost small" onClick={() => rerun(node.node_name)}>单节点重跑</button>}<button className="ghost small" onClick={() => rerunFrom(node.node_name)}>重跑此处及下游</button></div>
     </article>) || <Empty>尚无工作流运行记录</Empty>}</section></>
 }
 
@@ -214,7 +215,10 @@ function SourcePreview({ preview, busy, close, changePage }: { preview: Document
   const before = preview && preview.highlight_start >= 0 ? preview.text.slice(0, preview.highlight_start) : preview?.text
   const marked = preview && preview.highlight_start >= 0 ? preview.text.slice(preview.highlight_start, preview.highlight_end) : ''
   const after = preview && preview.highlight_start >= 0 ? preview.text.slice(preview.highlight_end) : ''
-  return <div className="source-drawer-backdrop" onMouseDown={close}><aside className="source-drawer" onMouseDown={event => event.stopPropagation()}><header><div><p className="eyebrow">SOURCE TRACE</p><h2>{preview?.filename || '材料原文'}</h2></div><button className="ghost" onClick={close}>关闭</button></header>{busy || !preview ? <div className="loading-preview">正在定位材料原文…</div> : <><div className="preview-toolbar"><button disabled={preview.page_number <= 1} onClick={() => changePage(preview.page_number - 1)}>上一页</button><span>第 {preview.page_number} / {preview.page_count} 页</span><button disabled={preview.page_number >= preview.page_count} onClick={() => changePage(preview.page_number + 1)}>下一页</button>{preview.has_original && <button onClick={() => api.openDocument(preview.id)}>打开原始文件</button>}</div>{preview.parse_warning && <div className="alert-inline">{preview.parse_warning}</div>}<div className="source-paper">{preview.text ? <pre>{before}{marked && <mark>{marked}</mark>}{after}</pre> : <Empty>该页没有可显示文本，请人工查看原始材料</Empty>}</div><div className="boundary"><strong>引用核对提示</strong><span>{marked && preview.highlight_exact ? '已定位并高亮完全一致的引用片段。' : marked ? '引用表述与原文不完全一致，已高亮最接近片段，必须人工核对。' : preview.requested_highlight ? '未找到可靠匹配片段，请人工核对整页。' : '当前为材料文本预览。'}</span></div></>}</aside></div>
+  const quality = preview?.page_quality
+  const lowRegions = quality?.ocr_regions?.filter(region => region.confidence < 0.75).length || 0
+  const sourceLabel = quality?.source_mode === 'ocr' ? 'OCR 识别' : quality?.source_mode === 'embedded_text' ? 'PDF 内嵌文本' : quality?.source_mode === 'native_text' ? '原生文本' : '历史材料'
+  return <div className="source-drawer-backdrop" onMouseDown={close}><aside className="source-drawer" onMouseDown={event => event.stopPropagation()}><header><div><p className="eyebrow">SOURCE TRACE</p><h2>{preview?.filename || '材料原文'}</h2></div><button className="ghost" onClick={close}>关闭</button></header>{busy || !preview ? <div className="loading-preview">正在定位材料原文…</div> : <><div className="preview-toolbar"><button disabled={preview.page_number <= 1} onClick={() => changePage(preview.page_number - 1)}>上一页</button><span>第 {preview.page_number} / {preview.page_count} 页</span><button disabled={preview.page_number >= preview.page_count} onClick={() => changePage(preview.page_number + 1)}>下一页</button>{preview.has_original && <button onClick={() => api.openDocument(preview.id)}>打开原始文件</button>}</div><div className="page-quality-strip"><Badge tone={quality?.source_mode === 'ocr' ? 'info' : 'neutral'}>{sourceLabel}</Badge>{quality?.ocr_confidence != null && <Badge tone={quality.ocr_confidence < 0.75 ? 'danger' : 'success'}>{quality.source_mode === 'ocr' ? 'OCR' : '解析置信度'} {Math.round(quality.ocr_confidence * 100)}%</Badge>}{quality?.source_mode === 'ocr' && <span>{quality.ocr_regions.length} 个识别区域 · {lowRegions} 个低置信度区域</span>}</div>{preview.parse_warning && <div className="alert-inline">{preview.parse_warning}</div>}<div className="source-paper">{preview.text ? <pre>{before}{marked && <mark>{marked}</mark>}{after}</pre> : <Empty>该页没有可显示文本，请人工查看原始材料</Empty>}</div><div className="boundary"><strong>引用核对提示</strong><span>{quality?.ocr_confidence != null && quality.ocr_confidence < 0.75 ? '本页文本解析置信度偏低，引用内容必须对照原始材料核验。' : marked && preview.highlight_exact ? '已定位并高亮完全一致的引用片段。' : marked ? '引用表述与原文不完全一致，已高亮最接近片段，必须人工核对。' : preview.requested_highlight ? '未找到可靠匹配片段，请人工核对整页。' : '当前为材料文本预览。'}</span></div></>}</aside></div>
 }
 
 function Relationships({ data }: { data: Workspace }) {

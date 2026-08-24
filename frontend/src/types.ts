@@ -54,6 +54,11 @@ export type DocumentPreview = {
   id: string; filename: string; mime_type: string; page_number: number; page_count: number;
   text: string; highlight: string; requested_highlight?: string; highlight_exact?: boolean; highlight_start: number; highlight_end: number;
   has_original: boolean; parse_warning: string;
+  page_quality?: {
+    source_mode: 'native_text' | 'embedded_text' | 'ocr' | 'legacy'; ocr_confidence?: number | null;
+    ocr_regions: Array<{ text: string; confidence: number; left: number; top: number; width: number; height: number }>;
+    image_width?: number | null; image_height?: number | null;
+  };
 }
 
 export type Member = { id: string; email: string; display_name: string; role: string; status: string }

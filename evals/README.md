@@ -19,3 +19,15 @@ python -m evaluation.run_suite \
 ```
 
 合成评测只验证输出完整性、材料忠实性、可追溯性和人工复核边界，不代表真实案件准确率、法律正确率或业务效果。
+
+## 真实脱敏案例离线评测
+
+真实标注文件只应保存在受控环境，不得提交到 Git。模板通过授权、脱敏、双人复核和 `approved` 状态校验后，才会进入指标计算：
+
+```bash
+cd backend
+python -m evaluation.run_labeled_eval ../private-evals/approved-cases.jsonl \
+  --output ../private-evals/latest-results.json
+```
+
+输出 facts、缺失材料、冲突、规则命中和强制人工复核项的 precision、recall、F1 及宏平均 F1。指标必须连同样本量、案件分布和标注流程披露。

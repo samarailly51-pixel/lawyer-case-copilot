@@ -18,7 +18,9 @@ MVP 使用模块化单体。React SPA 调用 FastAPI；SQLAlchemy 管理 SQLite�
 
 案件材料默认禁止发送至外部模型。部署者必须显式设置授权开关；模型输出中的 `document_id + quote` 会回查原始材料，不存在的引用不会落库。
 
-文档处理为 PDF 保留页码；图片可选择本地 Tesseract OCR。`DocumentQualityAssessment` 保存文本质量、OCR 置信度、疑似 Prompt Injection 和人工复核要求。
+文档处理为 PDF 保留页码；图片可选择本地 Tesseract OCR。`DocumentPage` 保存每页文本来源、OCR 平均置信度、识别区域坐标和图像尺寸，`DocumentQualityAssessment` 保存文档级文本质量、疑似 Prompt Injection 和人工复核要求。
+
+工作流既支持单节点重跑，也支持从指定节点向下游恢复。每次执行都会生成新的 `NodeRun` 并记录替代关系、执行原因和尝试序号；律师已经接受或修改的结构化记录不会被自动标记为过期，新生成结果仍须重新复核。
 
 `GET /api/cases/{case_id}/quality` 汇总材料解析率、文本质量、事实来源覆盖、事实复核、强制风险复核和知识引用状态。该评分只反映系统处理质量，不反映案件结果。
 
@@ -29,6 +31,8 @@ MVP 使用模块化单体。React SPA 调用 FastAPI；SQLAlchemy 管理 SQLite�
 - 律所多租户、RBAC、数据保留策略；
 - 受控 OCR、病毒扫描和材料脱敏；
 - 更多经过律师验证的领域插件。
+
+真实案件评测采用本地离线流程。评测器仅接受已确认授权、完成脱敏、由不同人员标注和复核且状态为 `approved` 的记录，不提供公开上传接口。
 
 ## 企业化实现
 

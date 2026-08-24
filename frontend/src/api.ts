@@ -53,6 +53,9 @@ export const api = {
   runs: (id: string) => request<Array<Record<string, any>>>(`/cases/${id}/runs`),
   runDetail: (id: string) => request<Record<string, any>>(`/runs/${id}`),
   rerunNode: (runId: string, node: string) => request(`/runs/${runId}/nodes/${node}/rerun`, { method: 'POST' }),
+  resumeRun: (runId: string, fromNode?: string) => request(`/runs/${runId}/resume`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from_node: fromNode || null }),
+  }),
   review: (payload: Record<string, unknown>) => request('/reviews', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
   }),

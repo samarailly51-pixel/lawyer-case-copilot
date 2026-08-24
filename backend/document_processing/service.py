@@ -19,6 +19,10 @@ class ExtractedPage:
     page_number: int
     text: str
     ocr_confidence: float | None = None
+    source_mode: str = "native_text"
+    ocr_regions: list[dict[str, int | float | str]] | None = None
+    image_width: int | None = None
+    image_height: int | None = None
 
 
 @dataclass
@@ -67,7 +71,7 @@ def extract_pages(filename: str, content: bytes) -> ExtractionResult:
             from pypdf import PdfReader
 
             reader = PdfReader(io.BytesIO(content))
-            pages = [ExtractedPage(index, page.extract_text() or "") for index, page in enumerate(reader.pages, 1)]
+            pages = [ExtractedPage(index, page.extract_text() or "", source_mode="embedded_text") for index, page in enumerate(reader.pages, 1)]
             if any(not page.text.strip() for page in pages):
                 ocr = get_ocr_provider()
                 if ocr.name != "disabled":
@@ -85,6 +89,10 @@ def extract_pages(filename: str, content: bytes) -> ExtractionResult:
                             result = ocr.extract(image_buffer.getvalue())
                             page.text = result.text
                             page.ocr_confidence = result.confidence
+                            page.source_mode = "ocr"
+                            page.ocr_regions = result.regions or []
+                            page.image_width = result.image_width
+                            page.image_height = result.image_height
                         remaining = sum(not page.text.strip() for page in pages)
                         warning = f"仍有 {remaining} 页未提取到文本，需人工核查。" if remaining else "扫描页已使用本地 OCR，需核对识别结果。"
                         return ExtractionResult(pages, warning, ocr.name)
@@ -104,7 +112,10 @@ def extract_pages(filename: str, content: bytes) -> ExtractionResult:
         except Exception as exc:
             return ExtractionResult([], f"Word 解析失败：{exc}")
     ocr = get_ocr_provider().extract(content)
-    return ExtractionResult([ExtractedPage(1, ocr.text, ocr.confidence)], ocr.warning, ocr.provider)
+    return ExtractionResult([ExtractedPage(
+        1, ocr.text, ocr.confidence, source_mode="ocr", ocr_regions=ocr.regions or [],
+        image_width=ocr.image_width, image_height=ocr.image_height,
+    )], ocr.warning, ocr.provider)
 
 
 def extract_text(filename: str, content: bytes) -> tuple[str, int, str]:

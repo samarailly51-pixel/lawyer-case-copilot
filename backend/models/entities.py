@@ -128,6 +128,7 @@ class Document(TimestampMixin, Base):
     sensitive_level: Mapped[str] = mapped_column(String(20), default="confidential")
     case: Mapped[Case] = relationship(back_populates="documents")
     chunks: Mapped[list["DocumentChunk"]] = relationship(back_populates="document", cascade="all, delete-orphan")
+    pages: Mapped[list["DocumentPage"]] = relationship(back_populates="document", cascade="all, delete-orphan")
 
 
 class DocumentChunk(TimestampMixin, Base):
@@ -140,6 +141,20 @@ class DocumentChunk(TimestampMixin, Base):
     end_offset: Mapped[int] = mapped_column(Integer, default=0)
     ocr_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     document: Mapped[Document] = relationship(back_populates="chunks")
+
+
+class DocumentPage(TimestampMixin, Base):
+    __tablename__ = "document_pages"
+    __table_args__ = (UniqueConstraint("document_id", "page_number", name="uq_document_page"),)
+    document_id: Mapped[str] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
+    page_number: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text, default="")
+    source_mode: Mapped[str] = mapped_column(String(30), default="native_text")
+    ocr_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ocr_regions: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    image_width: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    image_height: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    document: Mapped[Document] = relationship(back_populates="pages")
 
 
 class DocumentQualityAssessment(TimestampMixin, Base):
