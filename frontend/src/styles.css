@@ -250,6 +250,8 @@ td > small { display: block; margin-top: 5px; }
 .preview-toolbar span { margin-right: auto; color: var(--muted); font-size: 11px; }
 .preview-toolbar button { border: 1px solid var(--line); background: white; color: var(--blue); padding: 7px 10px; border-radius: 5px; cursor: pointer; }
 .preview-toolbar button:disabled { color: #aab1b8; cursor: not-allowed; }
+.page-quality-strip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: -3px 0 12px; color: var(--muted); font-size: 12px; }
+.workflow-recovery { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .source-paper { min-height: 65vh; background: white; border: 1px solid #d8dde2; box-shadow: 0 7px 25px #2637470c; padding: 34px; margin-bottom: 14px; }
 .source-paper pre { white-space: pre-wrap; font: 400 13px/2 'Noto Sans SC', sans-serif; color: #303d4f; margin: 0; }
 .source-paper mark { background: #ffe79b; color: #2a3441; padding: 2px; border-bottom: 2px solid #d6a932; }

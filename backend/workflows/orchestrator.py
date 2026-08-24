@@ -122,7 +122,74 @@ class WorkflowOrchestrator:
         )
         self._supersede_results(case.id, node_name)
         sequence = latest.sequence if latest else list(WORKFLOW_NODES).index(node_name) + 1
-        return self._execute_node(run, case, node_name, sequence, latest.id if latest else None)
+        return self._execute_node(
+            run, case, node_name, sequence, latest.id if latest else None,
+            execution_reason="single_node_rerun",
+        )
+
+    def rerun_from_node(self, run_id: str, from_node: str | None = None) -> AgentRun:
+        """Resume a failed run or intentionally rebuild a node and all downstream outputs.
+
+        Lawyer-accepted or lawyer-modified records are never superseded. New AI
+        candidates remain unreviewed and therefore cannot silently replace a
+        confirmed conclusion.
+        """
+        run = self.db.get(AgentRun, run_id)
+        if not run:
+            raise ValueError("运行记录不存在")
+        case = self.db.get(Case, run.case_id)
+        if not case:
+            raise ValueError("案件不存在")
+        if from_node is None:
+            failed = self.db.scalar(
+                select(NodeRun).where(NodeRun.run_id == run_id, NodeRun.status == "failed")
+                .order_by(NodeRun.created_at.desc())
+            )
+            if not failed:
+                raise ValueError("当前运行没有失败节点，请明确指定起始节点")
+            from_node = failed.node_name
+        if from_node not in WORKFLOW_NODES:
+            raise ValueError("未知工作流节点")
+
+        run.status = "processing"
+        run.error = ""
+        run.completed_at = None
+        if not run.started_at:
+            run.started_at = datetime.now(timezone.utc)
+        self.db.commit()
+        start_index = list(WORKFLOW_NODES).index(from_node)
+        for sequence, node_name in enumerate(WORKFLOW_NODES[start_index:], start=start_index + 1):
+            latest = self.db.scalar(
+                select(NodeRun).where(NodeRun.run_id == run_id, NodeRun.node_name == node_name)
+                .order_by(NodeRun.created_at.desc())
+            )
+            if node_name == "traffic_injury_module" and case.case_type != "traffic_injury":
+                skipped = NodeRun(
+                    run_id=run.id, case_id=case.id, node_name=node_name, sequence=sequence,
+                    status="skipped", input_summary={"reason": "非交通事故人伤案件", "execution_reason": "downstream_rerun"},
+                    output_summary={}, started_at=datetime.now(timezone.utc), completed_at=datetime.now(timezone.utc),
+                    supersedes_node_run_id=latest.id if latest else None,
+                )
+                self.db.add(skipped)
+                self.db.commit()
+                continue
+            try:
+                self._execute_node(
+                    run, case, node_name, sequence, latest.id if latest else None,
+                    execution_reason="downstream_rerun",
+                )
+            except Exception as exc:
+                run.status = "failed"
+                run.error = f"{node_name}: {exc}"
+                run.completed_at = datetime.now(timezone.utc)
+                self.db.commit()
+                return run
+        run.status = "awaiting_review"
+        run.completed_at = datetime.now(timezone.utc)
+        case.progress = max(case.progress, 88)
+        self.db.commit()
+        self.db.refresh(run)
+        return run
 
     def _supersede_results(self, case_id: str, node_name: str) -> None:
         for model in NODE_MODELS.get(node_name, ()):
@@ -136,11 +203,11 @@ class WorkflowOrchestrator:
         self.db.commit()
 
     def _execute_node(self, run: AgentRun, case: Case, node_name: str, sequence: int,
-                      supersedes: str | None = None) -> NodeRun:
+                      supersedes: str | None = None, execution_reason: str = "workflow") -> NodeRun:
         self._supersede_results(case.id, node_name)
         node = NodeRun(
             run_id=run.id, case_id=case.id, node_name=node_name, sequence=sequence, status="processing",
-            input_summary={"case_id": case.id, "case_type": case.case_type},
+            input_summary={"case_id": case.id, "case_type": case.case_type, "execution_reason": execution_reason},
             started_at=datetime.now(timezone.utc), supersedes_node_run_id=supersedes,
         )
         self.db.add(node); self.db.commit(); self.db.refresh(node)

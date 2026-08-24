@@ -244,6 +244,8 @@ def run_suite(dataset: Path) -> dict:
                 if forbidden in output_text:
                     failures.append(f"检测到非当前材料内容：{forbidden}")
 
+            quality_payload = quality.to_dict()
+            quality_payload.pop("case_id", None)  # synthetic database UUIDs are intentionally non-deterministic
             results.append(
                 {
                     "id": definition["id"],
@@ -251,7 +253,7 @@ def run_suite(dataset: Path) -> dict:
                     "passed": not failures,
                     "failures": failures,
                     "specialist_source_coverage": round(specialist_coverage, 4),
-                    "quality": quality.to_dict(),
+                    "quality": quality_payload,
                 }
             )
         remove_synthetic_cases(db)

@@ -12,6 +12,7 @@ frontend/dist/
 .test-tmp*/
 .demo-runtime/
 video_assets/
+private-evals/
 *.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts

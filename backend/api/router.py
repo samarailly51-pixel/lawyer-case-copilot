@@ -19,13 +19,13 @@ from document_processing.quality import assess_text_quality
 from document_processing.service import chunk_text, classify_document, extract_pages, store_upload
 from models.entities import (
     AgentRun, AuditLog, Case, CaseParty, CaseReport, CaseTask, CaseWorkspaceLink, CompensationItem, DisabilityAppraisal, Document,
-    DocumentChunk, DocumentQualityAssessment, EvidenceItem, ExtractedFact, HumanReview, InjuryRecord, InsuranceInfo,
+    DocumentChunk, DocumentPage, DocumentQualityAssessment, EvidenceItem, ExtractedFact, HumanReview, InjuryRecord, InsuranceInfo,
     KnowledgeSource, KnowledgeWorkspaceLink, LegalCitation, LegalIssue, MedicalExpense, MissingMaterial, NodeRun, RiskItem, SourceReference,
     TimelineEvent, TrafficAccidentInfo, TrafficRiskItem, TreatmentRecord, PartyRelationship,
 )
 from schemas.api import (
     BatchReviewCreate, CaseCreate, CaseOut, CaseUpdate, CompensationScenarioRequest,
-    DocumentCategoryUpdate, DocumentOut, ReviewCreate, RunCreate, TaskUpdate,
+    DocumentCategoryUpdate, DocumentOut, ReviewCreate, RunCreate, RunResume, TaskUpdate,
 )
 from schemas.knowledge import KnowledgeSearch, KnowledgeSourceCreate
 from services.knowledge import create_knowledge_source, search_knowledge
@@ -90,10 +90,16 @@ def _storage_key(uri: str) -> str:
 
 
 def _document_page(db: Session, document: Document, page_number: int) -> tuple[str, list[dict[str, Any]]]:
+    page = db.scalar(select(DocumentPage).where(
+        DocumentPage.document_id == document.id,
+        DocumentPage.page_number == page_number,
+    ))
     chunks = list(db.scalars(select(DocumentChunk).where(
         DocumentChunk.document_id == document.id,
         DocumentChunk.page_number == page_number,
     ).order_by(DocumentChunk.chunk_index)))
+    if page:
+        return page.text, [row_dict(chunk) for chunk in chunks]
     if chunks:
         text = "\n".join(chunk.text for chunk in chunks)
         return text, [row_dict(chunk) for chunk in chunks]
@@ -302,11 +308,18 @@ async def upload_document(case_id: str, file: UploadFile = File(...), actor: Act
     db.add(doc); db.flush()
     chunk_index = 0
     for page in extraction.pages:
+        db.add(DocumentPage(
+            document_id=doc.id, page_number=page.page_number, text=page.text,
+            source_mode=page.source_mode, ocr_confidence=page.ocr_confidence,
+            ocr_regions=page.ocr_regions or [], image_width=page.image_width,
+            image_height=page.image_height,
+        ))
         for start, end, value in chunk_text(page.text):
             db.add(DocumentChunk(document_id=doc.id, page_number=page.page_number, chunk_index=chunk_index, text=value,
                                  start_offset=start, end_offset=end, ocr_confidence=page.ocr_confidence))
             chunk_index += 1
-    average_ocr = next((page.ocr_confidence for page in extraction.pages if page.ocr_confidence is not None), None)
+    ocr_scores = [page.ocr_confidence for page in extraction.pages if page.ocr_confidence is not None]
+    average_ocr = sum(ocr_scores) / len(ocr_scores) if ocr_scores else None
     quality = assess_text_quality(text, warning, average_ocr)
     db.add(DocumentQualityAssessment(
         document_id=doc.id, case_id=case_id, text_quality_score=quality.score,
@@ -358,6 +371,10 @@ def preview_document(document_id: str, page: int = Query(default=1, ge=1),
     if page > max(document.page_count, 1):
         raise HTTPException(404, "材料页码不存在")
     text, chunks = _document_page(db, document, page)
+    page_record = db.scalar(select(DocumentPage).where(
+        DocumentPage.document_id == document.id,
+        DocumentPage.page_number == page,
+    ))
     matched, position, end_position, exact = _locate_quote(text, highlight)
     return {
         "id": document.id, "filename": document.filename, "mime_type": document.mime_type,
@@ -366,6 +383,15 @@ def preview_document(document_id: str, page: int = Query(default=1, ge=1),
         "highlight_start": position, "highlight_end": end_position,
         "chunks": chunks, "has_original": bool(document.file_path),
         "parse_warning": document.parse_warning,
+        "page_quality": {
+            "source_mode": page_record.source_mode if page_record else "legacy",
+            "ocr_confidence": page_record.ocr_confidence if page_record else next(
+                (item.get("ocr_confidence") for item in chunks if item.get("ocr_confidence") is not None), None
+            ),
+            "ocr_regions": page_record.ocr_regions if page_record else [],
+            "image_width": page_record.image_width if page_record else None,
+            "image_height": page_record.image_height if page_record else None,
+        },
     }
 
 
@@ -418,6 +444,7 @@ def get_run(run_id: str, actor: Actor = Depends(get_current_actor), db: Session 
     require_case_access(db, actor, run.case_id)
     nodes = list(db.scalars(select(NodeRun).where(NodeRun.run_id == run_id).order_by(NodeRun.sequence, NodeRun.created_at)))
     serialized_nodes = []
+    attempts: dict[str, int] = {}
     total_duration_ms = 0
     for node in nodes:
         item = row_dict(node)
@@ -426,7 +453,8 @@ def get_run(run_id: str, actor: Actor = Depends(get_current_actor), db: Session 
             duration_ms = max(0, round((node.completed_at - node.started_at).total_seconds() * 1000))
             total_duration_ms += duration_ms
         item["duration_ms"] = duration_ms
-        item["attempt"] = 1 + int(bool(node.supersedes_node_run_id))
+        attempts[node.node_name] = attempts.get(node.node_name, 0) + 1
+        item["attempt"] = attempts[node.node_name]
         serialized_nodes.append(item)
     run_duration_ms = None
     if run.started_at and run.completed_at:
@@ -453,6 +481,25 @@ def rerun_node(run_id: str, node_name: str, actor: Actor = Depends(get_current_a
     require_case_access(db, actor, run.case_id, "assistant")
     try:
         return row_dict(WorkflowOrchestrator(db).rerun_node(run_id, node_name))
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/runs/{run_id}/resume")
+def resume_run(run_id: str, payload: RunResume, actor: Actor = Depends(get_current_actor), db: Session = Depends(get_db)):
+    run = db.get(AgentRun, run_id)
+    if not run:
+        raise HTTPException(404, "运行记录不存在")
+    require_case_access(db, actor, run.case_id, "assistant")
+    try:
+        resumed = WorkflowOrchestrator(db).rerun_from_node(run_id, payload.from_node)
+        db.add(AuditLog(
+            case_id=run.case_id, actor=actor.display_name, action="resume_workflow",
+            target_type="agent_run", target_id=run.id,
+            details={"from_node": payload.from_node or "failed_node", "status": resumed.status},
+        ))
+        db.commit()
+        return row_dict(resumed)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
 

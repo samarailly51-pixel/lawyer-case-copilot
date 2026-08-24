@@ -67,6 +67,10 @@ class RunCreate(BaseModel):
     trigger_type: str = "manual"
 
 
+class RunResume(BaseModel):
+    from_node: str | None = None
+
+
 class ReviewCreate(BaseModel):
     case_id: str
     target_type: str

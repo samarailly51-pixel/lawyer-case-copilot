@@ -18,6 +18,8 @@
 4. 评测集发布前再次执行脱敏扫描和引用可访问性检查；
 5. 每次规则或模型版本变更后重新运行回归评测。
 
+只有同时满足以下机器校验的记录才进入离线评测：`authorization_confirmed=true`、`deidentification_confirmed=true`、标注人与复核人不同、`status=approved`。评测工具不会提供公开上传接口。
+
 ## 3. 建议指标
 
 | 维度 | 指标 |
